@@ -1,0 +1,24 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node --env-file-if-exists=.env src/server.js",
+    "dev": "nodemon --watch src --watch .env --exec \"node --env-file-if-exists=.env src/server.js\"",
+    "token": "node --env-file-if-exists=.env scripts/dev-token.js",
+    "secret": "node -p crypto.randomBytes(64).toString('hex')"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "express": "^5.3.0",
+    "jsonwebtoken": "^9.0.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
