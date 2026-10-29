@@ -1,0 +1,209 @@
+/* Full-width bar fixed to the top. The glass background lives on a pseudo-element
+   so backdrop-filter doesn't become the containing block for the fixed mobile menu. */
+.site-header {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 50;
+  isolation: isolate;
+  color: #fff;
+}
+
+.site-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-bottom: 1px solid rgb(255 255 255 / 0.12);
+  background: rgb(46 0 70 / 0.3);
+  backdrop-filter: saturate(160%) blur(16px);
+  -webkit-backdrop-filter: saturate(160%) blur(16px);
+  transition:
+    background-color 0.35s var(--ease),
+    box-shadow 0.35s var(--ease);
+}
+
+.site-header.is-solid::before {
+  background: rgb(46 0 70 / 0.92);
+  box-shadow: 0 12px 30px -16px rgb(20 0 32 / 0.6);
+}
+
+.site-header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  max-width: var(--container);
+  height: var(--header-h);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.site-header__brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.site-header__brand img {
+  width: auto;
+  height: 38px;
+}
+
+.site-header__divider {
+  width: 1px;
+  height: 30px;
+  background: rgb(255 255 255 / 0.3);
+}
+
+.site-header__office {
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.site-nav ul {
+  display: flex;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-nav__link {
+  display: block;
+  padding: 9px 14px;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.82);
+  transition:
+    color 0.2s,
+    background-color 0.2s;
+}
+
+.site-nav__link:hover {
+  color: #fff;
+  background: rgb(255 255 255 / 0.1);
+}
+
+.site-nav__link.active {
+  color: var(--purple-900);
+  background: #fff;
+}
+
+.site-nav__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.site-nav__login {
+  padding: 9px 14px;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.82);
+  transition:
+    color 0.2s,
+    background-color 0.2s;
+}
+
+.site-nav__login:hover {
+  color: #fff;
+  background: rgb(255 255 255 / 0.1);
+}
+
+.site-nav__actions .btn {
+  padding: 0.8em 1.5em;
+}
+
+.site-header__toggle {
+  display: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.14);
+  color: #fff;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+@media (max-width: 1140px) {
+  .site-header__toggle {
+    display: grid;
+  }
+
+  /* Full-width dropdown panel under the bar */
+  .site-nav {
+    position: fixed;
+    top: var(--header-h);
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    max-height: calc(100dvh - var(--header-h));
+    padding: 16px var(--gutter) 24px;
+    border-radius: 0 0 24px 24px;
+    background: var(--purple-900);
+    box-shadow: var(--shadow-lg);
+    overflow-y: auto;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px) scale(0.98);
+    transform-origin: top center;
+    transition:
+      opacity 0.25s var(--ease),
+      transform 0.25s var(--ease),
+      visibility 0.25s;
+  }
+
+  .site-header.is-open .site-nav {
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+  }
+
+  .site-nav ul {
+    flex-direction: column;
+  }
+
+  .site-nav__link {
+    padding: 14px 18px;
+    border-radius: 14px;
+    font-size: 1.05rem;
+  }
+
+  .site-nav__actions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+    padding-top: 16px;
+    border-top: 1px solid rgb(255 255 255 / 0.12);
+  }
+
+  .site-nav__actions .btn {
+    padding: 1em;
+  }
+
+  .site-nav__login {
+    text-align: center;
+  }
+}
+
+@media (max-width: 420px) {
+  .site-header__divider,
+  .site-header__office {
+    display: none;
+  }
+}

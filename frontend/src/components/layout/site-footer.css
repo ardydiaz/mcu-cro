@@ -1,0 +1,150 @@
+.site-footer {
+  position: relative;
+  overflow: hidden;
+  padding-top: clamp(56px, 8vw, 88px);
+  background: var(--purple-900);
+  color: rgb(255 255 255 / 0.75);
+}
+
+.site-footer::before {
+  content: '';
+  position: absolute;
+  top: -240px;
+  right: -160px;
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(113 44 131 / 0.55), transparent 70%);
+  pointer-events: none;
+}
+
+.site-footer__grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.6fr 1fr 1.2fr;
+  gap: clamp(32px, 5vw, 64px);
+  padding-bottom: 48px;
+}
+
+.site-footer__brand img {
+  width: auto;
+  height: 56px;
+  margin-bottom: 20px;
+}
+
+.site-footer__brand p {
+  max-width: 360px;
+  font-size: 0.95rem;
+}
+
+.site-footer__title {
+  margin-bottom: 18px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--gold-500);
+}
+
+.site-footer ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-footer__links {
+  display: grid;
+  gap: 10px;
+}
+
+.site-footer__links a,
+.site-footer__contact a {
+  transition: color 0.2s;
+}
+
+.site-footer__links a:hover,
+.site-footer__contact a:hover {
+  color: #fff;
+}
+
+.site-footer__contact {
+  display: grid;
+  gap: 16px;
+}
+
+.site-footer__contact li {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.site-footer__contact svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+  font-size: 1.2rem;
+  color: var(--gold-500);
+}
+
+.site-footer__contact address {
+  display: grid;
+  font-style: normal;
+}
+
+.site-footer__contact a {
+  overflow-wrap: anywhere;
+}
+
+.site-footer__social {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px !important;
+}
+
+.site-footer__social a {
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.08);
+  color: #fff;
+  transition:
+    background-color 0.2s,
+    color 0.2s,
+    transform 0.25s var(--ease);
+}
+
+.site-footer__social a:hover {
+  background: var(--gold-500);
+  color: var(--purple-900);
+  transform: translateY(-3px);
+}
+
+.site-footer__bottom {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  padding-block: 24px;
+  border-top: 1px solid rgb(255 255 255 / 0.1);
+  font-size: 0.85rem;
+  color: rgb(255 255 255 / 0.55);
+}
+
+@media (max-width: 860px) {
+  .site-footer__grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .site-footer__brand {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 520px) {
+  .site-footer__grid {
+    grid-template-columns: 1fr;
+  }
+}
