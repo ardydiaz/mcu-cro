@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { HiOutlineMail, HiOutlinePhone, HiOutlineLocationMarker } from 'react-icons/hi'
-import { submitInquiry } from '../../api/public.api.js'
+import { getInquiryFormToken, submitInquiry } from '../../api/public.api.js'
 import { INQUIRY_TOPIC_LABELS } from '../../constants/content.js'
 import { SITE } from '../../constants/site.js'
 
@@ -12,10 +12,39 @@ export function ContactForm({ initialTopic = 'general' }) {
   const [values, setValues] = useState(() => ({ ...EMPTY, topic: INQUIRY_TOPIC_LABELS[initialTopic] ? initialTopic : 'general' }))
   const [errors, setErrors] = useState({})
   const [status, setStatus] = useState({ state: 'idle', message: '' })
+  // Signed time the form was shown; the server ignores messages sent within
+  // seconds of it (bots). Fetched again after each message.
+  const formToken = useRef(null)
+  const loadToken = () =>
+    getInquiryFormToken().then(
+      (token) => (formToken.current = token),
+      () => (formToken.current = null),
+    )
+
+  useEffect(() => {
+    loadToken()
+  }, [])
 
   const onChange = (e) => {
     setValues((v) => ({ ...v, [e.target.name]: e.target.value }))
     setErrors((errs) => (errs[e.target.name] ? { ...errs, [e.target.name]: undefined } : errs))
+  }
+
+  // A fresh token must be a few seconds old before it is accepted.
+  async function freshToken() {
+    await loadToken()
+    await new Promise((resolve) => setTimeout(resolve, 3200))
+    return formToken.current
+  }
+
+  async function send() {
+    try {
+      await submitInquiry({ ...values, formToken: formToken.current ?? (await freshToken()) })
+    } catch (err) {
+      // The page was open for a very long time: get a new token and send once more.
+      if (!err.details?.some((d) => d.field === 'formToken')) throw err
+      await submitInquiry({ ...values, formToken: await freshToken() })
+    }
   }
 
   async function onSubmit(e) {
@@ -23,7 +52,8 @@ export function ContactForm({ initialTopic = 'general' }) {
     setStatus({ state: 'sending', message: '' })
     setErrors({})
     try {
-      await submitInquiry(values)
+      await send()
+      loadToken()
       setValues({ ...EMPTY, topic: values.topic })
       setStatus({
         state: 'success',

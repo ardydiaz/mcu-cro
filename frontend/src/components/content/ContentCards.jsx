@@ -1,46 +1,52 @@
 import { Link } from 'react-router-dom'
-import {
-  HiArrowRight,
-  HiOutlineCalendarDays,
-  HiOutlineDocumentText,
-  HiOutlineMapPin,
-  HiOutlinePresentationChartBar,
-  HiOutlinePlayCircle,
-  HiOutlineHeart,
-  HiOutlineBookOpen,
-  HiOutlineNewspaper,
-} from 'react-icons/hi2'
-import { RESOURCE_TYPE_LABELS } from '../../constants/content.js'
+import { HiArrowRight, HiOutlineCalendarDays, HiOutlineDocumentText, HiOutlineLanguage, HiOutlineMapPin, HiPlay } from 'react-icons/hi2'
+import { LANGUAGE_LABELS, RESOURCE_TYPE_LABELS } from '../../constants/content.js'
 import { formatDate } from './contentFormat.js'
+import { TYPE_ICONS } from './resourceTypes.js'
 import './content.css'
 
-const TYPE_ICONS = {
-  video: HiOutlinePlayCircle,
-  module: HiOutlineBookOpen,
-  pamphlet: HiOutlineNewspaper,
-  presentation: HiOutlinePresentationChartBar,
-  health_info: HiOutlineHeart,
-  other: HiOutlineDocumentText,
-}
-
-// A learning material in a grid: video thumbnail or a type icon, title, college, topic.
+// A learning material in a grid: video thumbnail or a type illustration, the
+// college, topic, title, short description and language.
 export function ResourceCard({ resource: r }) {
   const Icon = TYPE_ICONS[r.type] ?? HiOutlineDocumentText
   const thumb = r.video?.thumbnailUrl ?? (r.file?.mimeType.startsWith('image/') ? r.file.url : null)
   return (
-    <article className="resource-card">
+    <article className={`resource-card resource-card--${r.type}`}>
       <Link to={`/learning-resources/${r.id}`} className="resource-card__link">
-        <div className={`resource-card__media resource-card__media--${r.type}`}>
-          {thumb ? <img src={thumb} alt="" loading="lazy" /> : <Icon aria-hidden="true" />}
-          {r.type === 'video' && thumb && <HiOutlinePlayCircle className="resource-card__play" aria-hidden="true" />}
-          <span className="resource-card__type">{RESOURCE_TYPE_LABELS[r.type]}</span>
+        <div className={`resource-card__media${thumb ? ' has-thumb' : ''}`}>
+          {thumb ? (
+            <img src={thumb} alt="" loading="lazy" />
+          ) : (
+            <span className="resource-card__art" aria-hidden="true">
+              <Icon />
+            </span>
+          )}
+          {r.type === 'video' && thumb && (
+            <span className="resource-card__play" aria-hidden="true">
+              <HiPlay />
+            </span>
+          )}
+          <span className="resource-card__type">
+            <Icon aria-hidden="true" /> {RESOURCE_TYPE_LABELS[r.type]}
+          </span>
+          <span className="resource-card__college" title={r.college.name}>
+            {r.college.code}
+          </span>
         </div>
         <div className="resource-card__body">
-          <span className="resource-card__meta">
-            {r.college.code} · {r.topic}
-          </span>
+          <span className="resource-card__topic">{r.topic}</span>
           <h3>{r.title}</h3>
           {r.description && <p>{r.description}</p>}
+          <span className="resource-card__foot">
+            {r.language && (
+              <span>
+                <HiOutlineLanguage aria-hidden="true" /> {LANGUAGE_LABELS[r.language]}
+              </span>
+            )}
+            <span className="resource-card__open">
+              {r.type === 'video' ? 'Watch' : 'Open'} <HiArrowRight aria-hidden="true" />
+            </span>
+          </span>
         </div>
       </Link>
     </article>

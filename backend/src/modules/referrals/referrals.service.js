@@ -1,4 +1,4 @@
-import { collegeScopeOf } from '../../middleware/applyScope.js'
+import { beneficiaryScopeOf, collegeScopeOf, recordScopeOf } from '../../middleware/applyScope.js'
 import { HttpError } from '../../utils/httpError.js'
 import * as beneficiariesRepo from '../beneficiaries/beneficiaries.repository.js'
 import * as collegesRepo from '../colleges/colleges.repository.js'
@@ -7,20 +7,18 @@ import * as repo from './referrals.repository.js'
 
 const fieldError = (field, message) => new HttpError(400, 'Please check the highlighted fields.', [{ field, message }])
 
-export const list = (filters, actor) => repo.list(filters, collegeScopeOf(actor))
+export const list = (filters, actor) => repo.list(filters, recordScopeOf(actor))
 
-// College users see referrals from or to their college; others look missing.
+// Referrals outside the user's scope look the same as missing ones.
 export async function get(id, actor) {
-  const referral = await repo.findById(id)
-  const scope = collegeScopeOf(actor)
-  const inScope = !scope || referral?.college.id === scope || referral?.referredToCollege?.id === scope
-  if (!referral || !inScope) throw new HttpError(404, 'Referral not found.')
+  const referral = await repo.findById(id, recordScopeOf(actor))
+  if (!referral) throw new HttpError(404, 'Referral not found.')
   return referral
 }
 
 // Checks the referral as it will be saved (`next` = stored values + changes).
 async function check(next, changes, actor) {
-  if (changes.beneficiaryId !== undefined && !(await beneficiariesRepo.findById(changes.beneficiaryId))) {
+  if (changes.beneficiaryId !== undefined && !(await beneficiariesRepo.findById(changes.beneficiaryId, beneficiaryScopeOf(actor)))) {
     throw fieldError('beneficiaryId', 'Choose a beneficiary from the list.')
   }
   if (changes.serviceRecordId) {

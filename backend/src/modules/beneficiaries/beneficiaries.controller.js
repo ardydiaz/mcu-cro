@@ -4,12 +4,12 @@ import * as service from './beneficiaries.service.js'
 // Audit entries name the changed fields but never copy personal data into the log.
 
 export async function list(req, res) {
-  res.json(await service.list(req.validated.query))
+  res.json(await service.list(req.validated.query, req.user))
 }
 
 // Viewing a full profile is logged: access logs for personal data (requirements Step 9).
 export async function get(req, res) {
-  const beneficiary = await service.get(req.validated.params.id)
+  const beneficiary = await service.get(req.validated.params.id, req.user)
   await audit(req, 'beneficiary.view', { entityType: 'beneficiary', entityId: beneficiary.id })
   res.json(beneficiary)
 }

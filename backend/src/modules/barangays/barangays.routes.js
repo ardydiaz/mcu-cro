@@ -2,19 +2,22 @@ import { Router } from 'express'
 import { audit } from '../../middleware/auditLog.js'
 import requireRole from '../../middleware/requireRole.js'
 import validate from '../../middleware/validate.js'
-import { BENEFICIARY_EDITORS } from '../../constants/roles.js'
+import { RECORD_MANAGERS, ROLES } from '../../constants/roles.js'
 import { HttpError } from '../../utils/httpError.js'
 import { createBarangaySchema } from '../../validators/barangays.js'
 import * as repo from './barangays.repository.js'
 
-// Mounted at /api/admin/barangays. Everyone can list; beneficiary editors can add.
+// Mounted at /api/admin/barangays. Everyone can list; administrators can add.
+// ?assigned=1 returns only the barangays the user works with: a Community
+// Coordinator's assigned barangays, every barangay for everyone else.
 const router = Router()
 
 router.get('/', async (req, res) => {
-  res.json({ barangays: await repo.listActive() })
+  const mine = req.query.assigned === '1' && req.user.roles.includes(ROLES.COORDINATOR)
+  res.json({ barangays: mine ? await repo.listAssigned(req.user.id) : await repo.listActive() })
 })
 
-router.post('/', requireRole(...BENEFICIARY_EDITORS), validate(createBarangaySchema), async (req, res) => {
+router.post('/', requireRole(...RECORD_MANAGERS), validate(createBarangaySchema), async (req, res) => {
   if (await repo.findByNameAndCity(req.body.name, req.body.city)) {
     throw new HttpError(409, 'This barangay is already on the list.')
   }

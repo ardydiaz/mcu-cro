@@ -2,14 +2,17 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { HiArrowLeft, HiOutlinePlus, HiOutlineShieldCheck } from 'react-icons/hi2'
 import Modal from '../../components/Modal.jsx'
+import useCurrentUser from '../../auth/useCurrentUser.js'
 import {
   createBarangay,
   createBeneficiary,
   getBeneficiary,
   listBarangays,
+  listColleges,
   updateBeneficiary,
 } from '../../api/admin.api.js'
 import { CIVIL_STATUS_LABELS, EDUCATION_LABELS, SEX_LABELS } from '../../constants/beneficiaries.js'
+import { RECORD_MANAGERS } from '../../constants/roles.js'
 import { ageOf, fullName } from '../shared/format.js'
 
 const EMPTY = {
@@ -31,6 +34,7 @@ const EMPTY = {
   education: '',
   isPwd: false,
   notes: '',
+  collegeIds: [],
 }
 
 // API record → form values (strings for inputs).
@@ -39,6 +43,7 @@ const toValues = (b) =>
     Object.keys(EMPTY).map((key) => {
       if (key === 'barangayId') return [key, String(b.barangay.id)]
       if (key === 'isPwd') return [key, b.isPwd]
+      if (key === 'collegeIds') return [key, (b.colleges ?? []).map((c) => c.id)]
       return [key, b[key] == null ? '' : String(b[key])]
     }),
   )
@@ -84,18 +89,34 @@ export default function BeneficiaryFormPage() {
 function BeneficiaryForm({ beneficiary }) {
   const editing = Boolean(beneficiary)
   const navigate = useNavigate()
+  const { hasRole } = useCurrentUser()
   const formRef = useRef(null)
   const [values, setValues] = useState(() => (editing ? toValues(beneficiary) : EMPTY))
   const [consent, setConsent] = useState(false)
   const [barangays, setBarangays] = useState([])
+  const [colleges, setColleges] = useState([])
   const [addingBarangay, setAddingBarangay] = useState(false)
   const [errors, setErrors] = useState({})
   const [formError, setFormError] = useState('')
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    listBarangays().then(setBarangays, () => setFormError("Couldn't load the list of barangays. Please refresh the page."))
-  }, [])
+    // Coordinators get only their assigned barangays.
+    listBarangays({ assigned: 1 }).then(
+      (list) => {
+        // Keep the current barangay selectable when editing.
+        const current = beneficiary?.barangay
+        setBarangays(current && !list.some((b) => b.id === current.id) ? [...list, current] : list)
+      },
+      () => setFormError("Couldn't load the list of barangays. Please refresh the page."),
+    )
+    listColleges().then(setColleges, () => {})
+  }, [beneficiary])
+
+  const toggleCollege = (id) => {
+    setValues((v) => ({ ...v, collegeIds: v.collegeIds.includes(id) ? v.collegeIds.filter((c) => c !== id) : [...v.collegeIds, id] }))
+    clearError('collegeIds')
+  }
 
   // After a failed save, move focus to the first field with an error.
   const [focusRequest, setFocusRequest] = useState(0)
@@ -227,7 +248,7 @@ function BeneficiaryForm({ beneficiary }) {
               <div className="field-with-action">
                 <select id="barangay" value={values.barangayId} onChange={set('barangayId')} required aria-invalid={Boolean(errors.barangayId)}>
                   <option value="" disabled>
-                    {barangays.length ? 'Choose the barangay…' : 'No barangays yet — add one'}
+                    {barangays.length ? 'Choose the barangay…' : 'No barangays available'}
                   </option>
                   {barangays.map((b) => (
                     <option key={b.id} value={b.id}>
@@ -235,9 +256,11 @@ function BeneficiaryForm({ beneficiary }) {
                     </option>
                   ))}
                 </select>
-                <button type="button" className="btn btn--outline" onClick={() => setAddingBarangay(true)}>
-                  <HiOutlinePlus aria-hidden="true" /> Add barangay
-                </button>
+                {hasRole(...RECORD_MANAGERS) && (
+                  <button type="button" className="btn btn--outline" onClick={() => setAddingBarangay(true)}>
+                    <HiOutlinePlus aria-hidden="true" /> Add barangay
+                  </button>
+                )}
               </div>
               {errors.barangayId && <small className="admin-field__error">{errors.barangayId}</small>}
             </div>
@@ -282,6 +305,24 @@ function BeneficiaryForm({ beneficiary }) {
               {errors.notes && <small className="admin-field__error">{errors.notes}</small>}
             </label>
           </div>
+        </section>
+
+        <section className="form-card" aria-labelledby="colleges-title">
+          <h2 id="colleges-title">Assigned colleges and departments</h2>
+          <p className="form-card__hint">
+            Colleges and departments that will follow this beneficiary. Their users can then see the record and
+            record services. A college that serves or receives a referral for them also sees it.
+          </p>
+          <div className="college-checks">
+            {colleges.map((c) => (
+              <label key={c.id} className={`college-check${values.collegeIds.includes(c.id) ? ' is-selected' : ''}`}>
+                <input type="checkbox" checked={values.collegeIds.includes(c.id)} onChange={() => toggleCollege(c.id)} />
+                <strong>{c.code}</strong>
+                <span>{c.name}</span>
+              </label>
+            ))}
+          </div>
+          {errors.collegeIds && <small className="admin-field__error">{errors.collegeIds}</small>}
         </section>
 
         {!editing && (

@@ -125,10 +125,14 @@ export const createInquirySchema = z.object({
   message: requiredText(2000, 'Enter your message.').refine((m) => m.length >= 10, 'Please write a little more (at least 10 characters).'),
   // Spam trap: hidden from people, filled in by bots (the route quietly drops those).
   website: z.string().max(500).optional(),
+  // Signed time the form was shown (GET /api/public/inquiries/form-token).
+  formToken: z.string().max(200).optional(),
 })
 
+export const INQUIRY_STATUSES = ['new', 'handled', 'archived', 'spam']
 export const listInquiriesSchema = z.object({
-  status: z.enum(['new', 'handled', 'archived']).optional(),
+  status: z.enum(INQUIRY_STATUSES).optional(),
   ...page,
 })
-export const updateInquirySchema = z.object({ status: z.enum(['new', 'handled', 'archived']) })
+// 'spam' blocks the sender; changing a spam message to another status unblocks them.
+export const updateInquirySchema = z.object({ status: z.enum(INQUIRY_STATUSES) })

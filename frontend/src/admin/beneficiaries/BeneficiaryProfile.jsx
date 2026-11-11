@@ -249,6 +249,21 @@ export default function BeneficiaryProfile() {
             )}
           </section>
 
+          <section className="form-card" aria-labelledby="p-colleges">
+            <h2 id="p-colleges">Assigned colleges</h2>
+            {b.colleges?.length > 0 ? (
+              <ul className="college-tags">
+                {b.colleges.map((c) => (
+                  <li key={c.id} title={c.name}>
+                    {c.code}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="side-note">None assigned.</p>
+            )}
+          </section>
+
           <section className="form-card" aria-labelledby="p-record">
             <h2 id="p-record">Record</h2>
             <dl className="detail-grid detail-grid--single">

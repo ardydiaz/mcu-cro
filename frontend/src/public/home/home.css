@@ -65,63 +65,105 @@
 }
 
 /* Glass "latest story" card */
-.home-hero__latest {
+/* Upcoming activities / latest stories slider */
+.highlight {
   position: relative;
-  display: grid;
-  gap: 16px;
-  padding: 12px 12px 20px;
+  padding: 12px;
   border: 1px solid rgb(255 255 255 / 0.18);
-  border-radius: 24px;
+  border-radius: 26px;
   background: rgb(255 255 255 / 0.1);
   backdrop-filter: blur(18px) saturate(140%);
   -webkit-backdrop-filter: blur(18px) saturate(140%);
   box-shadow: 0 30px 60px -30px rgb(0 0 0 / 0.6);
   animation: home-rise 0.9s 0.45s var(--ease) both;
-  transition:
-    transform 0.35s var(--ease),
-    background-color 0.25s;
 }
 
-.home-hero__latest:hover {
-  transform: translateY(-4px);
-  background: rgb(255 255 255 / 0.16);
-}
-
-.home-hero__latest img {
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  object-fit: cover;
-  border-radius: 16px;
-}
-
-.home-hero__latest > div {
+/* Slides are stacked in one grid cell and cross-fade. */
+.highlight__track {
   display: grid;
-  gap: 6px;
-  padding: 0 8px;
 }
 
-.home-hero__latest-label {
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--gold-500);
+.highlight__slide {
+  display: grid;
+  grid-area: 1 / 1;
+  align-content: start;
+  gap: 14px;
+  color: #fff;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(24px);
+  transition:
+    opacity 0.6s var(--ease),
+    transform 0.6s var(--ease),
+    visibility 0s 0.6s;
 }
 
-.home-hero__latest strong {
-  font-size: 1.02rem;
-  line-height: 1.35;
+.highlight__slide.is-active {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition:
+    opacity 0.6s var(--ease),
+    transform 0.6s var(--ease);
 }
 
-.home-hero__latest time {
-  font-size: 0.82rem;
-  color: rgb(255 255 255 / 0.7);
+.highlight__media {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border-radius: 16px;
+  background: rgb(255 255 255 / 0.08);
 }
 
-.home-hero__latest-arrow {
+.highlight__media img,
+.highlight__placeholder {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.8s var(--ease);
+}
+
+.highlight__placeholder {
+  background:
+    radial-gradient(circle at 80% 20%, rgb(255 183 54 / 0.35), transparent 50%),
+    linear-gradient(135deg, var(--purple-600), var(--purple-900));
+}
+
+.highlight__slide:hover .highlight__media img {
+  transform: scale(1.05);
+}
+
+.highlight__date {
   position: absolute;
-  top: 22px;
-  right: 22px;
+  bottom: 10px;
+  left: 10px;
+  display: grid;
+  justify-items: center;
+  min-width: 52px;
+  padding: 6px 8px;
+  border-radius: 12px;
+  background: rgb(255 255 255 / 0.95);
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--purple-900);
+  box-shadow: 0 8px 20px -8px rgb(0 0 0 / 0.5);
+}
+
+.highlight__date small {
+  margin-bottom: 2px;
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--purple-600);
+}
+
+.highlight__arrow {
+  position: absolute;
+  top: 10px;
+  right: 10px;
   width: 38px;
   height: 38px;
   padding: 9px;
@@ -131,8 +173,162 @@
   transition: transform 0.3s var(--ease);
 }
 
-.home-hero__latest:hover .home-hero__latest-arrow {
+.highlight__slide:hover .highlight__arrow {
   transform: rotate(45deg);
+}
+
+.highlight__body {
+  display: grid;
+  gap: 6px;
+  padding: 0 8px;
+}
+
+.highlight__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.7);
+}
+
+.highlight__label.is-upcoming {
+  color: var(--gold-500);
+}
+
+.highlight__label.is-upcoming::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gold-500);
+  box-shadow: 0 0 0 4px rgb(255 183 54 / 0.25);
+}
+
+.highlight__body strong {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 1.05rem;
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+.highlight__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  font-size: 0.8rem;
+  color: rgb(255 255 255 / 0.72);
+}
+
+.highlight__meta > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.highlight__meta svg {
+  flex-shrink: 0;
+  color: var(--gold-500);
+}
+
+.highlight__controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 14px 8px 4px;
+  padding-top: 12px;
+  border-top: 1px solid rgb(255 255 255 / 0.14);
+}
+
+.highlight__controls > button {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid rgb(255 255 255 / 0.25);
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.08);
+  font-size: 1rem;
+  color: #fff;
+  cursor: pointer;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s;
+}
+
+.highlight__controls > button:hover {
+  border-color: var(--gold-500);
+  background: rgb(255 183 54 / 0.2);
+}
+
+.highlight__dots {
+  display: flex;
+  flex: 1;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* Each dot is a small bar; the active one fills up until the next slide. */
+.highlight__dots button {
+  position: relative;
+  flex: 1;
+  max-width: 34px;
+  height: 5px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(255 255 255 / 0.25);
+  cursor: pointer;
+}
+
+.highlight__dots button.is-active {
+  max-width: 56px;
+  background: rgb(255 255 255 / 0.35);
+}
+
+/* Paused (hover, focus or reduced motion): the active bar is shown full. */
+.highlight.is-paused .highlight__dots button.is-active {
+  background: var(--gold-500);
+}
+
+.highlight__dots button span {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--gold-500);
+  transform-origin: left;
+  animation: highlight-progress linear forwards;
+}
+
+@keyframes highlight-progress {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+.highlight__count {
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: rgb(255 255 255 / 0.7);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .highlight__slide,
+  .highlight__slide.is-active {
+    transform: none;
+    transition: none;
+  }
 }
 
 @keyframes home-rise {
@@ -154,7 +350,13 @@
 .ticker__track {
   display: flex;
   width: max-content;
-  animation: ticker 45s linear infinite;
+  animation: ticker 45s linear infinite; /* duration set from the number of items */
+}
+
+/* Stop to read or click. */
+.ticker:hover .ticker__track,
+.ticker:focus-within .ticker__track {
+  animation-play-state: paused;
 }
 
 .ticker ul {
@@ -167,12 +369,8 @@
 .ticker li {
   display: flex;
   align-items: center;
-  gap: 28px;
-  padding: 16px 0 16px 28px;
-  font-size: 1rem;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  gap: 24px;
+  padding: 12px 0 12px 24px;
   white-space: nowrap;
 }
 
@@ -180,6 +378,52 @@
   content: '✦';
   font-size: 0.9rem;
   color: var(--purple-700);
+}
+
+.ticker a {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 6px 4px 4px;
+  border-radius: 999px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  color: var(--purple-900);
+  transition: background-color 0.2s;
+}
+
+.ticker a:hover,
+.ticker a:focus-visible {
+  background: rgb(255 255 255 / 0.45);
+}
+
+.ticker__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--purple-900);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold-500);
+}
+
+.ticker__tag svg {
+  font-size: 0.85rem;
+}
+
+.ticker__item--program .ticker__tag {
+  background: var(--purple-700);
+  color: #fff;
+}
+
+.ticker__item--partner .ticker__tag {
+  background: rgb(46 0 70 / 0.12);
+  color: var(--purple-900);
 }
 
 @keyframes ticker {
@@ -1155,7 +1399,7 @@
     grid-template-columns: 1fr;
   }
 
-  .home-hero__latest {
+  .highlight {
     display: none;
   }
 

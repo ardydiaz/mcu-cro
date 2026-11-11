@@ -9,6 +9,23 @@
   gap: 16px;
 }
 
+.page-header-actions__buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* Which records a coordinator or college user is seeing */
+.scope-note {
+  margin: -8px 0 18px;
+  padding: 10px 14px;
+  border-left: 3px solid var(--gold-500);
+  border-radius: 8px;
+  background: var(--gold-100);
+  font-size: 0.88rem;
+  color: #6b4500;
+}
+
 .back-link {
   display: inline-flex;
   align-items: center;
@@ -247,6 +264,263 @@
 .check-field small {
   font-size: 0.8rem;
   color: var(--ink-500);
+}
+
+.form-card__hint {
+  margin: -10px 0 16px;
+  font-size: 0.88rem;
+  color: var(--ink-500);
+}
+
+/* Checkbox tiles: assigned colleges, assigned barangays */
+.college-checks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 8px;
+}
+
+.college-check {
+  display: grid;
+  grid-template-columns: auto auto 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  font-size: 0.86rem;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s;
+}
+
+.college-check:hover {
+  border-color: var(--purple-600);
+}
+
+.college-check.is-selected {
+  border-color: var(--purple-700);
+  background: var(--purple-50);
+}
+
+.college-check input {
+  width: 17px;
+  height: 17px;
+  margin: 0;
+  accent-color: var(--purple-700);
+}
+
+.college-check strong {
+  color: var(--purple-700);
+}
+
+.college-check span {
+  min-width: 0;
+  color: var(--ink-700);
+}
+
+/* ---------- Import ---------- */
+.import-steps {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  margin: 0 0 20px;
+  padding: 0;
+  list-style: none;
+}
+
+.import-steps > li {
+  display: flex;
+  gap: 16px;
+  margin: 0;
+}
+
+.import-steps h2 {
+  margin-bottom: 6px;
+}
+
+.import-steps p {
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+  color: var(--ink-700);
+}
+
+.import-steps__num {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--purple-700);
+  font-weight: 800;
+  color: #fff;
+}
+
+.import-steps > li > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.import-drop {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 22px 16px;
+  border: 2px dashed var(--line);
+  border-radius: 14px;
+  background: var(--purple-50);
+  text-align: center;
+  color: var(--purple-700);
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s;
+}
+
+.import-drop:hover,
+#import-file:focus-visible + .import-drop {
+  border-color: var(--purple-600);
+  background: var(--purple-100);
+}
+
+.import-drop.is-busy {
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.import-drop svg {
+  font-size: 1.6rem;
+}
+
+.import-drop span {
+  max-width: 100%;
+  overflow: hidden;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.import-drop small {
+  font-size: 0.8rem;
+  color: var(--ink-500);
+}
+
+.import-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.import-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.import-status--ready {
+  background: #e7f6ec;
+  color: #1e6b3a;
+}
+
+.import-status--problem {
+  background: #fdecec;
+  color: #a12626;
+}
+
+.import-status--duplicate {
+  background: var(--gold-100);
+  color: #8a5300;
+}
+
+.import-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 24px 14px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.import-filter input {
+  accent-color: var(--purple-700);
+}
+
+.import-table-wrap {
+  max-height: 520px;
+  overflow: auto;
+}
+
+.import-messages {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  font-size: 0.82rem;
+  color: #a12626;
+}
+
+.import-status--duplicate + .import-messages {
+  color: #8a5300;
+}
+
+.import-confirm {
+  display: grid;
+  gap: 12px;
+  padding: 20px 24px 24px;
+  border-top: 1px solid var(--line);
+}
+
+.import-confirm__note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  color: var(--ink-700);
+}
+
+.import-confirm__note svg {
+  flex-shrink: 0;
+  font-size: 1.1rem;
+  color: var(--purple-700);
+}
+
+.import-confirm__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+@media (max-width: 800px) {
+  .import-steps {
+    grid-template-columns: 1fr;
+  }
+}
+
+.college-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.college-tags li {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--purple-100);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--purple-700);
 }
 
 .consent-card {

@@ -1,28 +1,42 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { HiOutlineUserPlus } from 'react-icons/hi2'
+import { HiOutlineArrowUpTray, HiOutlineUserPlus } from 'react-icons/hi2'
 import useCurrentUser from '../../auth/useCurrentUser.js'
 import { listBarangays, listBeneficiaries } from '../../api/admin.api.js'
 import { SEX_LABELS } from '../../constants/beneficiaries.js'
-import { BENEFICIARY_EDITORS } from '../../constants/roles.js'
+import { BENEFICIARY_EDITORS, RECORD_MANAGERS, ROLES } from '../../constants/roles.js'
 import FilterSelect from '../shared/FilterSelect.jsx'
 import Pagination from '../shared/Pagination.jsx'
 import SearchBox from '../shared/SearchBox.jsx'
 import { ageOf, formatDate, initialsOf, listName } from '../shared/format.js'
 import useListPage from '../shared/useListPage.js'
 
+// Which records the user sees (requirements Step 5).
+function scopeNote(user, barangayCount) {
+  if (user.roles.includes(ROLES.COORDINATOR)) {
+    return barangayCount === 0
+      ? 'No barangays are assigned to you yet. Ask the IT administrator to assign them in Settings.'
+      : `Showing beneficiaries of your ${barangayCount === 1 ? 'assigned barangay' : `${barangayCount} assigned barangays`}.`
+  }
+  if (user.roles.includes(ROLES.COLLEGE)) {
+    return `Showing beneficiaries assigned to ${user.college?.code ?? 'your college'}, served by it, or referred from or to it.`
+  }
+  return null
+}
+
 export default function BeneficiaryList() {
-  const { hasRole } = useCurrentUser()
+  const { user, hasRole } = useCurrentUser()
   const canEdit = hasRole(...BENEFICIARY_EDITORS)
   const navigate = useNavigate()
   const location = useLocation()
   const list = useListPage(listBeneficiaries)
   const { data } = list
-  const [barangays, setBarangays] = useState([])
+  const [barangays, setBarangays] = useState(null)
   const [notice, setNotice] = useState(location.state?.notice ?? null)
+  const scope = barangays && scopeNote(user, barangays.length)
 
   useEffect(() => {
-    listBarangays().then(setBarangays, () => {})
+    listBarangays({ assigned: 1 }).then(setBarangays, () => setBarangays([]))
   }, [])
 
   return (
@@ -32,12 +46,21 @@ export default function BeneficiaryList() {
           <h1>Beneficiaries</h1>
           <p>Profiles of community members served by MCU colleges and departments.</p>
         </div>
-        {canEdit && (
-          <Link to="new" className="btn btn--purple">
-            <HiOutlineUserPlus aria-hidden="true" /> Add beneficiary
-          </Link>
-        )}
+        <div className="page-header-actions__buttons">
+          {hasRole(...RECORD_MANAGERS) && (
+            <Link to="import" className="btn btn--outline">
+              <HiOutlineArrowUpTray aria-hidden="true" /> Import from Excel
+            </Link>
+          )}
+          {canEdit && (
+            <Link to="new" className="btn btn--purple">
+              <HiOutlineUserPlus aria-hidden="true" /> Add beneficiary
+            </Link>
+          )}
+        </div>
       </div>
+
+      {scope && <p className="scope-note">{scope}</p>}
 
       <section className="admin-panel data-panel" aria-labelledby="beneficiaries-title">
         <div className="data-panel__top">
@@ -54,7 +77,7 @@ export default function BeneficiaryList() {
               allLabel="All barangays"
               value={list.filters.barangayId}
               onChange={(v) => list.setFilter('barangayId', v)}
-              options={barangays.map((b) => [b.id, `${b.name}, ${b.city}`])}
+              options={(barangays ?? []).map((b) => [b.id, `${b.name}, ${b.city}`])}
             />
             <FilterSelect
               label="Sex"

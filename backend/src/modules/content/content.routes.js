@@ -123,10 +123,22 @@ router.get('/inquiries', publishersOnly, validate(listInquiriesSchema, 'query'),
   res.json(await inquiries.list(req.validated.query))
 })
 
+// 'spam' also blocks the sender; moving a spam message elsewhere unblocks them.
 router.patch('/inquiries/:id', publishersOnly, byId, validate(updateInquirySchema), async (req, res) => {
-  const inquiry = await inquiries.setStatus(req.validated.params.id, req.body.status, req.user.id)
-  if (!inquiry) throw new HttpError(404, 'Message not found.')
-  await audit(req, 'inquiry.update', { entityType: 'inquiry', entityId: inquiry.id, details: { status: inquiry.status } })
+  const { id } = req.validated.params
+  const { status } = req.body
+  const current = await inquiries.findById(id)
+  if (!current) throw new HttpError(404, 'Message not found.')
+
+  let inquiry
+  if (status === 'spam') inquiry = await inquiries.markSpam(id, req.user.id)
+  else {
+    if (current.status === 'spam') await inquiries.unmarkSpam(id)
+    inquiry = await inquiries.setStatus(id, status, req.user.id)
+  }
+  // The sender's email is personal data: the log only says whether they were blocked.
+  const blocked = status === 'spam' ? true : current.status === 'spam' ? false : undefined
+  await audit(req, 'inquiry.update', { entityType: 'inquiry', entityId: inquiry.id, details: { status: inquiry.status, blocked } })
   res.json(inquiry)
 })
 

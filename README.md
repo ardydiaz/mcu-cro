@@ -12,6 +12,10 @@
 4. Start `npm run dev` in `backend/` and `frontend/`, then open http://localhost:2001/admin.
 5. Optional, for development: `npm run db:seed` adds fictional sample data: 75 beneficiaries in 6 Caloocan barangays, about 200 service records and 40 referrals, plus 7 programs, and 25 learning materials with generated PDFs (20 published; the others are draft, waiting for review or sent back, to try the review flow). `npm run db:seed -- --materials` adds only the learning materials. Remove all sample data with `npm run db:seed -- --reset` (barangays and programs are kept). The script refuses to run when `NODE_ENV=production`.
 
+## Importing existing beneficiary lists
+
+CRO and IT administrators can bring in beneficiaries kept in Excel under **Beneficiaries → Import from Excel**: download the template (with drop-downs and instructions), fill it in or use a file with the same headings, and upload it (.xlsx or CSV, up to 2,000 rows). Every row is checked first and nothing is saved until you confirm. Rows with problems or people already registered (same name and birth date) are skipped. The audit log records the number of rows imported, not their contents.
+
 ## Community Website content
 
 The public site (`/`, `/learning-resources`, `/activities`, `/colleges`, `/programs-services`, `/partner-communities`, `/about`, `/contact`) reads from `/api/public`, which needs no sign-in and only returns **published** content and totals, never beneficiary records.

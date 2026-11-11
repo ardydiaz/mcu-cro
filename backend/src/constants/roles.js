@@ -9,12 +9,14 @@ export const ROLES = Object.freeze({
 
 export const ALL_ROLES = Object.values(ROLES)
 
-// Who may add and edit beneficiary profiles (and add barangays). Everyone can view.
+// Who may add and edit beneficiary profiles. Everyone can view the beneficiaries
+// in their scope (see middleware/applyScope.js).
 export const BENEFICIARY_EDITORS = [ROLES.IT_ADMIN, ROLES.CRO_ADMIN, ROLES.COORDINATOR]
 // Who may record services and referrals (college users: their own college only).
 export const SERVICE_EDITORS = [...BENEFICIARY_EDITORS, ROLES.COLLEGE]
 // Website content: everyone can prepare materials and activities (college users
 // for their own college); CRO staff review and publish them (requirements Step 7).
 export const CONTENT_PUBLISHERS = [ROLES.IT_ADMIN, ROLES.CRO_ADMIN, ROLES.COORDINATOR]
-// Who may remove beneficiary, service and referral records.
+// Who may remove beneficiary, service and referral records, import beneficiaries
+// and add barangays.
 export const RECORD_MANAGERS = [ROLES.IT_ADMIN, ROLES.CRO_ADMIN]

@@ -23,4 +23,6 @@ export const getCollege = (slug) => request(`/public/colleges/${encodeURICompone
 export const listPrograms = () => request('/public/programs').then((d) => d.programs)
 export const listPartners = () => request('/public/partners').then((d) => d.partners)
 
+// Contact form: a signed "form shown at" time, sent back with the message (spam check).
+export const getInquiryFormToken = () => request('/public/inquiries/form-token').then((d) => d.token)
 export const submitInquiry = (data) => request('/public/inquiries', { method: 'POST', body: JSON.stringify(data) })

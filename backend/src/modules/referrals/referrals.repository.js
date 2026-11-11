@@ -60,19 +60,29 @@ const COLUMNS = {
 }
 const fieldsOf = (data) => Object.entries(data).filter(([key, value]) => key in COLUMNS && value !== undefined)
 
-export async function findById(id) {
-  const [rows] = await db.execute(`${SELECT} WHERE r.id = ? AND r.deleted_at IS NULL LIMIT 1`, [id])
+// `scope` (from recordScopeOf): College/Department users see referrals from or to
+// their college; coordinators the referrals of their barangays' beneficiaries.
+function scopeConditions(scope, add) {
+  if (scope?.collegeId) add('(r.college_id = ? OR r.referred_to_college_id = ?)', scope.collegeId, scope.collegeId)
+  if (scope?.beneficiary) add(scope.beneficiary.sql, ...scope.beneficiary.params)
+}
+
+export async function findById(id, scope = null) {
+  const where = ['r.id = ?', 'r.deleted_at IS NULL']
+  const params = [id]
+  scopeConditions(scope, (sql, ...values) => where.push(sql) && params.push(...values))
+  const [rows] = await db.query(`${SELECT} WHERE ${where.join(' AND ')} LIMIT 1`, params)
   return toReferral(rows[0])
 }
 
-// `scopeCollegeId`: College/Department users see referrals from or to their college.
-export async function list({ search, beneficiaryId, serviceRecordId, collegeId, status, urgency, page, pageSize }, scopeCollegeId) {
+export async function list({ search, beneficiaryId, serviceRecordId, collegeId, status, urgency, page, pageSize }, scope = null) {
   const where = ['r.deleted_at IS NULL', 'b.deleted_at IS NULL']
   const params = []
   const add = (sql, ...values) => {
     where.push(sql)
     params.push(...values)
   }
+  scopeConditions(scope, add)
   if (search) {
     const match = beneficiarySearch(search)
     add(match.sql, ...match.params)
@@ -80,7 +90,6 @@ export async function list({ search, beneficiaryId, serviceRecordId, collegeId, 
   if (beneficiaryId) add('r.beneficiary_id = ?', beneficiaryId)
   if (serviceRecordId) add('r.service_record_id = ?', serviceRecordId)
   if (collegeId) add('(r.college_id = ? OR r.referred_to_college_id = ?)', collegeId, collegeId)
-  if (scopeCollegeId) add('(r.college_id = ? OR r.referred_to_college_id = ?)', scopeCollegeId, scopeCollegeId)
   if (status === 'open') add("r.status IN ('pending', 'in_progress')")
   else if (status) add('r.status = ?', status)
   if (urgency) add('r.urgency = ?', urgency)
@@ -123,12 +132,14 @@ export async function remove(id, actorId) {
   await db.execute('UPDATE referrals SET deleted_at = CURRENT_TIMESTAMP(3), updated_by = ? WHERE id = ?', [actorId, id])
 }
 
-export async function countOpen(scopeCollegeId) {
-  const scope = scopeCollegeId ? 'AND (r.college_id = ? OR r.referred_to_college_id = ?)' : ''
+export async function countOpen(scope = null) {
+  const where = ['r.deleted_at IS NULL', "r.status IN ('pending', 'in_progress')"]
+  const params = []
+  scopeConditions(scope, (sql, ...values) => where.push(sql) && params.push(...values))
   const [[{ total }]] = await db.query(
     `SELECT COUNT(*) AS total FROM referrals r JOIN beneficiaries b ON b.id = r.beneficiary_id AND b.deleted_at IS NULL
-     WHERE r.deleted_at IS NULL AND r.status IN ('pending', 'in_progress') ${scope}`,
-    scopeCollegeId ? [scopeCollegeId, scopeCollegeId] : [],
+     WHERE ${where.join(' AND ')}`,
+    params,
   )
   return Number(total)
 }

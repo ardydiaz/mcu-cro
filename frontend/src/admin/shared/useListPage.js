@@ -7,7 +7,8 @@ import { useSearchParams } from 'react-router-dom'
 //   list.filters.sex, list.setFilter('sex', 'female'), list.data?.items, list.goTo(2)
 export default function useListPage(fetchPage, pageSize = 20) {
   const [params, setParams] = useSearchParams()
-  const key = params.toString()
+  const [version, setVersion] = useState(0) // bumped by reload()
+  const key = `${params}#${version}`
   const filters = Object.fromEntries(params)
   const page = Number(params.get('page')) || 1
   const search = params.get('search') ?? ''
@@ -61,6 +62,7 @@ export default function useListPage(fetchPage, pageSize = 20) {
     setSearchInput,
     setFilter,
     goTo,
+    reload: () => setVersion((v) => v + 1),
     loading,
     data: loading ? null : result.data,
     error: loading ? null : result.error,

@@ -11,7 +11,7 @@ import {
 import Modal from '../../components/Modal.jsx'
 import useCurrentUser from '../../auth/useCurrentUser.js'
 import { deleteUser, listUsers, updateUser } from '../../api/admin.api.js'
-import { ROLE_LABELS } from '../../constants/roles.js'
+import { ROLE_LABELS, ROLES } from '../../constants/roles.js'
 import UserFormModal from './UserFormModal.jsx'
 import './settings.css'
 
@@ -173,6 +173,15 @@ export default function SettingsPage() {
                       {user.college && (
                         <span className="role-college" title={user.college.name}>
                           {user.college.name}
+                        </span>
+                      )}
+                      {user.role === ROLES.COORDINATOR && (
+                        <span className="role-college" title={user.barangays?.map((b) => b.name).join(', ')}>
+                          {user.barangays?.length
+                            ? user.barangays.length === 1
+                              ? user.barangays[0].name
+                              : `${user.barangays.length} barangays`
+                            : 'No barangays assigned'}
                         </span>
                       )}
                     </td>

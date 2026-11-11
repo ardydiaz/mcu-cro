@@ -64,9 +64,37 @@ const COLUMNS = {
 
 const fieldsOf = (data) => Object.entries(data).filter(([key, value]) => key in COLUMNS && value !== undefined)
 
-export async function findById(id) {
-  const [rows] = await db.execute(`${SELECT} WHERE b.id = ? AND b.deleted_at IS NULL LIMIT 1`, [id])
-  return toBeneficiary(rows[0])
+// `scope` (from beneficiaryScopeOf) hides beneficiaries the user may not see.
+export async function findById(id, scope = null) {
+  const [rows] = await db.query(`${SELECT} WHERE b.id = ? AND b.deleted_at IS NULL${scope ? ` AND ${scope.sql}` : ''} LIMIT 1`, [
+    id,
+    ...(scope?.params ?? []),
+  ])
+  const beneficiary = toBeneficiary(rows[0])
+  if (beneficiary) beneficiary.colleges = await collegesOf(id)
+  return beneficiary
+}
+
+// Colleges/departments the beneficiary is assigned to.
+export async function collegesOf(id) {
+  const [rows] = await db.execute(
+    `SELECT c.id, c.code, c.name FROM beneficiary_colleges bc JOIN colleges c ON c.id = bc.college_id
+     WHERE bc.beneficiary_id = ? ORDER BY c.sort_order`,
+    [id],
+  )
+  return rows.map((c) => ({ id: c.id, code: c.code, name: c.name }))
+}
+
+// Replaces the assigned colleges; existing assignments keep their original date.
+export async function setColleges(id, collegeIds, actorId, conn = db) {
+  if (collegeIds.length === 0) {
+    await conn.execute('DELETE FROM beneficiary_colleges WHERE beneficiary_id = ?', [id])
+    return
+  }
+  await conn.query('DELETE FROM beneficiary_colleges WHERE beneficiary_id = ? AND college_id NOT IN (?)', [id, collegeIds])
+  await conn.query('INSERT IGNORE INTO beneficiary_colleges (beneficiary_id, college_id, assigned_by) VALUES ?', [
+    collegeIds.map((collegeId) => [id, collegeId, actorId]),
+  ])
 }
 
 // SQL condition matching a beneficiary (table alias `b`) by name, contact
@@ -89,9 +117,13 @@ export function beneficiarySearch(search) {
   return { sql: `(${terms.join(' OR ')})`, params }
 }
 
-export async function list({ search, barangayId, sex, page, pageSize }) {
+export async function list({ search, barangayId, sex, page, pageSize }, scope = null) {
   const where = ['b.deleted_at IS NULL']
   const params = []
+  if (scope) {
+    where.push(scope.sql)
+    params.push(...scope.params)
+  }
   if (search) {
     const match = beneficiarySearch(search)
     where.push(match.sql)
@@ -117,6 +149,7 @@ export async function list({ search, barangayId, sex, page, pageSize }) {
 }
 
 // Same first name, last name and birth date (ignoring case), excluding `excludeId`.
+// Returns { id, code } or null.
 export async function findDuplicate({ firstName, lastName, birthDate }, excludeId = 0) {
   const [rows] = await db.execute(
     `SELECT id FROM beneficiaries
@@ -124,23 +157,29 @@ export async function findDuplicate({ firstName, lastName, birthDate }, excludeI
      LIMIT 1`,
     [firstName, lastName, birthDate, excludeId],
   )
-  return rows[0] ? toCode(rows[0].id) : null
+  return rows[0] ? { id: rows[0].id, code: toCode(rows[0].id) } : null
 }
 
-export async function create(data, actorId) {
+// Inserts one profile; pass `conn` to run inside a transaction. Returns the new id.
+export async function insert({ collegeIds = [], ...data }, actorId, conn = db) {
   const fields = fieldsOf(data)
   const columns = [...fields.map(([key]) => COLUMNS[key]), 'consent_at', 'created_by', 'updated_by']
   const values = [...fields.map(([, value]) => value), new Date(), actorId, actorId]
-  const [result] = await db.execute(
+  const [result] = await conn.execute(
     `INSERT INTO beneficiaries (${columns.join(', ')}) VALUES (${columns.map(() => '?').join(', ')})`,
     values,
   )
-  return findById(result.insertId)
+  if (collegeIds.length > 0) await setColleges(result.insertId, collegeIds, actorId, conn)
+  return result.insertId
 }
 
-export async function update(id, changes, actorId) {
+export async function create(data, actorId) {
+  return findById(await insert(data, actorId))
+}
+
+export async function update(id, { collegeIds, ...changes }, actorId) {
   const fields = fieldsOf(changes)
-  if (fields.length > 0) {
+  if (fields.length > 0 || collegeIds) {
     const set = [...fields.map(([key]) => `${COLUMNS[key]} = ?`), 'updated_by = ?'].join(', ')
     await db.execute(`UPDATE beneficiaries SET ${set} WHERE id = ? AND deleted_at IS NULL`, [
       ...fields.map(([, value]) => value),
@@ -148,6 +187,7 @@ export async function update(id, changes, actorId) {
       id,
     ])
   }
+  if (collegeIds) await setColleges(id, collegeIds, actorId)
   return findById(id)
 }
 
@@ -156,7 +196,10 @@ export async function remove(id, actorId) {
   await db.execute('UPDATE beneficiaries SET deleted_at = CURRENT_TIMESTAMP(3), updated_by = ? WHERE id = ?', [actorId, id])
 }
 
-export async function countActive() {
-  const [[{ total }]] = await db.execute('SELECT COUNT(*) AS total FROM beneficiaries WHERE deleted_at IS NULL')
+export async function countActive(scope = null) {
+  const [[{ total }]] = await db.query(
+    `SELECT COUNT(*) AS total FROM beneficiaries b WHERE b.deleted_at IS NULL${scope ? ` AND ${scope.sql}` : ''}`,
+    scope?.params ?? [],
+  )
   return Number(total)
 }

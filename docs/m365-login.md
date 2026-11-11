@@ -70,10 +70,12 @@ The roles follow the CRO requirements (Project 2, Step 5 – Determine User Acce
 
 | Role | Value | Can use |
 |---|---|---|
-| CRO Administrator | `cro_admin` | All beneficiary records and community data, programs, reports; publishes website content and reads contact messages; can remove records |
-| Community Coordinator | `coordinator` | Adds and edits beneficiaries, records services and referrals; publishes website content and reads contact messages |
-| College/Department User | `college` | Views beneficiaries; records services and referrals **for their own college only**, and sees only services of their college and referrals from or to it. Prepares learning materials and activities for their college and **submits them to CRO for review**; describes their college on the website |
+| CRO Administrator | `cro_admin` | All beneficiary records and community data, programs, reports; imports beneficiaries from Excel; adds barangays; assigns beneficiaries to colleges; publishes website content and reads contact messages; can remove records |
+| Community Coordinator | `coordinator` | **Only the beneficiaries of their assigned barangays** (set in Settings): adds and edits them, records their services and referrals. Publishes website content and reads contact messages |
+| College/Department User | `college` | **Only beneficiaries assigned to their college**, or that their college served or that were referred from or to it. Records services and referrals for their own college, and sees only services of their college and referrals from or to it. Prepares learning materials and activities for their college and **submits them to CRO for review**; describes their college on the website |
 | IT Administrator | `it_admin` | Everything: all pages above, plus Settings and user accounts |
+
+Records outside a user's scope behave as if they don't exist (404), including in searches, the dashboard figures and the beneficiary picker. A Community Coordinator without assigned barangays sees no beneficiaries.
 
 From the command line, a College/Department user also needs the college code (COM, COD, CPT, CON, CPH, COO, CMT, CAS, BED, IOE, SBM):
 
@@ -87,7 +89,7 @@ On first sign-in the account is linked to the person's Microsoft 365 identity (`
 
 | Measure | Where |
 |---|---|
-| `/api/public/*` (the Community Website) needs no sign-in, but is read-only and returns only published content and totals, never beneficiary records. Its contact form is limited to 5 messages per IP per hour, has a spam trap, and is protected by the origin check. Uploaded files are public only while attached to published content, and each upload's actual content is checked against its file type. | `routes/public.routes.js`, `modules/files` |
+| `/api/public/*` (the Community Website) needs no sign-in, but is read-only and returns only published content and totals, never beneficiary records. Its contact form is protected without outside services: 5 messages per IP per hour, a hidden trap field, a signed "form shown at" time (messages sent within 3 seconds are dropped), at most 2 links per message, repeated messages ignored for 24 hours, a block list fed by **Mark as spam** in the admin inbox, and the origin check. Spam is answered as if it was sent, so bots learn nothing. Uploaded files are public only while attached to published content, and each upload's actual content is checked against its file type. | `routes/public.routes.js`, `modules/files` |
 | Every other `/api` route except `/api/health` and `/api/auth/*` requires a JWT. Each request re-checks in MySQL that the user is active and the token isn't revoked; roles are read fresh from the database. | `middleware/requireAuth.js` |
 | Instant revocation: deactivating a user, or **Sign out of all devices**, increments `users.token_version`, which invalidates every token issued before | `users.service.js`, `/api/auth/logout-all` |
 | Rate limits: sign-in 100 / 15 min per IP, refresh 300 / 15 min per IP, API 1,500 / 15 min per user | `middleware/rateLimit.js` |

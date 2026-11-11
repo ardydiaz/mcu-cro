@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { HiArrowRight, HiArrowUpRight, HiHeart, HiOutlineMapPin, HiOutlineMegaphone, HiOutlineSparkles } from 'react-icons/hi2'
+import { HiArrowRight, HiHeart, HiOutlineMapPin, HiOutlineMegaphone, HiOutlineSparkles } from 'react-icons/hi2'
 import HeroSlider from '../../components/HeroSlider.jsx'
 import SectionHeading from '../../components/SectionHeading.jsx'
 import { ResourceCard } from '../../components/content/ContentCards.jsx'
@@ -8,11 +8,11 @@ import { getHome } from '../../api/public.api.js'
 import useApi from '../../hooks/useApi.js'
 import useReveal from '../../hooks/useReveal.js'
 import ContactSection from './ContactSection.jsx'
+import HighlightSlider from './HighlightSlider.jsx'
 import PillarCards from './PillarCards.jsx'
-import { COMMITMENTS, HERO_SLIDES, PILLARS } from './homeContent.js'
+import Ticker from './Ticker.jsx'
+import { COMMITMENTS, HERO_SLIDES } from './homeContent.js'
 import './home.css'
-
-const TICKER = PILLARS.flatMap((pillar) => [pillar.title, ...pillar.items])
 
 // Requirements §1 Home: introduction to MCU Community Relations, featured
 // community programs, announcements, and featured learning materials
@@ -20,8 +20,12 @@ const TICKER = PILLARS.flatMap((pillar) => [pillar.title, ...pillar.items])
 export default function HomePage() {
   const { data } = useApi(getHome, [])
   const ref = useReveal([Boolean(data)])
-  const latest = data?.upcoming[0] ?? data?.recent[0]
   const stories = data?.recent ?? []
+  // Hero slider: every upcoming activity first, then recent stories (up to 8 slides).
+  const highlights = [
+    ...(data?.upcoming ?? []).map((post) => ({ post, label: 'Upcoming activity' })),
+    ...stories.map((post) => ({ post, label: 'Latest story' })),
+  ].slice(0, 8)
 
   return (
     <div ref={ref}>
@@ -43,32 +47,12 @@ export default function HomePage() {
             </div>
           </div>
 
-          {latest && (
-            <Link to={`/activities/${latest.slug}`} className="home-hero__latest">
-              {latest.coverUrl && <img src={latest.coverUrl} alt="" />}
-              <div>
-                <span className="home-hero__latest-label">{latest === data.upcoming[0] ? 'Upcoming activity' : 'Latest story'}</span>
-                <strong>{latest.title}</strong>
-                <time dateTime={latest.eventDate}>{formatDate(latest.eventDate)}</time>
-              </div>
-              <HiArrowUpRight aria-hidden="true" className="home-hero__latest-arrow" />
-            </Link>
-          )}
+          <HighlightSlider items={highlights} />
         </div>
       </HeroSlider>
 
-      {/* Scrolling ticker of programs (decorative; the same items are listed under CRO Pillars) */}
-      <div className="ticker" aria-hidden="true">
-        <div className="ticker__track">
-          {[0, 1].map((copy) => (
-            <ul key={copy}>
-              {TICKER.map((item) => (
-                <li key={item}>{item}</li>
-              ))}
-            </ul>
-          ))}
-        </div>
-      </div>
+      {/* Scrolling ticker: upcoming activities, programs and partner barangays */}
+      <Ticker data={data} />
 
       {/* Announcements */}
       {data?.announcements.length > 0 && (
@@ -246,7 +230,7 @@ export default function HomePage() {
             </div>
 
             <div className="news__grid">
-              {stories.slice(latest === stories[0] ? 1 : 0, 6).map((post, i) => (
+              {stories.slice(0, 6).map((post, i) => (
                 <NewsCard key={post.id} post={post} featured={i === 0} delay={i * 80} />
               ))}
             </div>

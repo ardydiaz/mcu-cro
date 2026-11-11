@@ -17,6 +17,15 @@ export const createBeneficiary = (data) => request('/admin/beneficiaries', json(
 export const updateBeneficiary = (id, data) => request(`/admin/beneficiaries/${id}`, json('PATCH', data))
 export const deleteBeneficiary = (id) => request(`/admin/beneficiaries/${id}`, { method: 'DELETE' })
 
+// Import from Excel/CSV (administrators): check first (nothing saved), then commit.
+export const getImportTemplate = () => request('/admin/beneficiaries/import/template', { as: 'blob' })
+export function importBeneficiaries(file, { commit = false, consent = false } = {}) {
+  const body = new FormData()
+  body.append('file', file)
+  if (commit) body.append('consent', String(consent))
+  return request(`/admin/beneficiaries/import${commit ? '?commit=1' : ''}`, { method: 'POST', body })
+}
+
 // Service records (college users: their own college only)
 export const listServiceRecords = (params) => request(`/admin/service-records${query(params)}`)
 export const getServiceRecord = (id) => request(`/admin/service-records/${id}`)
@@ -65,8 +74,9 @@ export const getDashboard = () => request('/admin/dashboard')
 export const listPrograms = () => request('/admin/programs').then((data) => data.programs)
 export const createProgram = (data) => request('/admin/programs', json('POST', data))
 
-// Partner barangays
-export const listBarangays = () => request('/admin/barangays').then((data) => data.barangays)
+// Partner barangays. { assigned: 1 } returns a Community Coordinator's own barangays
+// (every barangay for other roles).
+export const listBarangays = (params = {}) => request(`/admin/barangays${query(params)}`).then((data) => data.barangays)
 export const createBarangay = (data) => request('/admin/barangays', json('POST', data))
 
 // Colleges/departments (any portal role)

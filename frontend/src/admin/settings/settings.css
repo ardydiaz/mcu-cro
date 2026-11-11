@@ -176,6 +176,56 @@
   color: var(--ink-500);
 }
 
+/* A coordinator's assigned barangays */
+.field-hint {
+  font-size: 0.85rem;
+  color: var(--ink-500);
+}
+
+.barangay-checks {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+  max-height: 240px;
+  margin-top: 8px;
+  overflow-y: auto;
+}
+
+.barangay-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.barangay-check.is-selected {
+  border-color: var(--purple-700);
+  background: var(--purple-50);
+}
+
+/* Overrides `.admin-field input { width: 100% }`. */
+.admin-field .barangay-check input {
+  flex-shrink: 0;
+  width: 17px;
+  height: 17px;
+  margin: 1px 0 0;
+  accent-color: var(--purple-700);
+}
+
+.barangay-check span {
+  display: grid;
+}
+
+.barangay-check small {
+  font-weight: 400;
+  color: var(--ink-500);
+}
+
 @media (max-width: 760px) {
   /* Line the user's details up with the name, past the avatar. */
   .data-table td[data-label]:not(:first-child) {

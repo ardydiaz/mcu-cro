@@ -1,4 +1,4 @@
-import { collegeScopeOf } from '../../middleware/applyScope.js'
+import { beneficiaryScopeOf, collegeScopeOf, recordScopeOf } from '../../middleware/applyScope.js'
 import { HttpError } from '../../utils/httpError.js'
 import * as beneficiariesRepo from '../beneficiaries/beneficiaries.repository.js'
 import * as collegesRepo from '../colleges/colleges.repository.js'
@@ -7,18 +7,19 @@ import * as repo from './serviceRecords.repository.js'
 
 const fieldError = (field, message) => new HttpError(400, 'Please check the highlighted fields.', [{ field, message }])
 
-export const list = (filters, actor) => repo.list(filters, collegeScopeOf(actor))
+export const list = (filters, actor) => repo.list(filters, recordScopeOf(actor))
 
-// Records outside a college user's scope look the same as missing ones.
+// Records outside the user's scope look the same as missing ones.
 export async function get(id, actor) {
-  const record = await repo.findById(id)
-  const scope = collegeScopeOf(actor)
-  if (!record || (scope && record.college.id !== scope)) throw new HttpError(404, 'Service record not found.')
+  const record = await repo.findById(id, recordScopeOf(actor))
+  if (!record) throw new HttpError(404, 'Service record not found.')
   return record
 }
 
 async function checkReferences({ beneficiaryId, programId, collegeId }, actor) {
-  if (beneficiaryId !== undefined && !(await beneficiariesRepo.findById(beneficiaryId))) {
+  // Services can only be recorded for beneficiaries the user may see (assigned
+  // to their college, or in their barangays).
+  if (beneficiaryId !== undefined && !(await beneficiariesRepo.findById(beneficiaryId, beneficiaryScopeOf(actor)))) {
     throw fieldError('beneficiaryId', 'Choose a beneficiary from the list.')
   }
   if (programId && !(await programsRepo.findById(programId))) throw fieldError('programId', 'Choose a program from the list.')

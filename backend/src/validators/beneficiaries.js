@@ -52,6 +52,12 @@ const profile = {
   education: z.enum(EDUCATION_LEVELS, { error: 'Choose a valid education level.' }).nullable().optional(),
   isPwd: z.boolean().optional(),
   notes: optionalText(2000, 'Notes'),
+  // Colleges/departments following this beneficiary (they can then see the record).
+  collegeIds: z
+    .array(z.number().int().positive(), { error: 'Choose valid colleges or departments.' })
+    .max(30)
+    .transform((ids) => [...new Set(ids)])
+    .optional(),
 }
 
 export const createBeneficiarySchema = z.object({

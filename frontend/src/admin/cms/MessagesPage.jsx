@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { HiOutlineArchiveBox, HiOutlineCheck, HiOutlineEnvelope, HiOutlinePhone } from 'react-icons/hi2'
+import { HiOutlineArchiveBox, HiOutlineCheck, HiOutlineEnvelope, HiOutlineNoSymbol, HiOutlinePhone } from 'react-icons/hi2'
+import Modal from '../../components/Modal.jsx'
 import { listInquiries, updateInquiry } from '../../api/admin.api.js'
 import { INQUIRY_TOPIC_LABELS } from '../../constants/content.js'
 import FilterSelect from '../shared/FilterSelect.jsx'
@@ -7,17 +8,30 @@ import Pagination from '../shared/Pagination.jsx'
 import { formatDateTime } from '../shared/format.js'
 import useListPage from '../shared/useListPage.js'
 
-const STATUS_LABELS = { new: 'New', handled: 'Handled', archived: 'Archived' }
+const STATUS_LABELS = { new: 'New', handled: 'Handled', archived: 'Archived', spam: 'Spam' }
 
 // Messages from the website's contact form (Contact / Community Coordination).
+// "All messages" leaves out spam; it has its own filter.
 export default function MessagesPage() {
   const list = useListPage(listInquiries)
   const [changed, setChanged] = useState({}) // id → updated message, until the list reloads
+  const [confirmSpam, setConfirmSpam] = useState(null)
+  const [error, setError] = useState('')
   const items = (list.data?.items ?? []).map((m) => changed[m.id] ?? m)
 
   async function setStatus(message, status) {
-    const saved = await updateInquiry(message.id, status)
-    setChanged((c) => ({ ...c, [saved.id]: saved }))
+    setError('')
+    try {
+      const saved = await updateInquiry(message.id, status)
+      setChanged((c) => ({ ...c, [saved.id]: saved }))
+      // Marking spam also moves the sender's other new messages: reload the list.
+      if (status === 'spam' || message.status === 'spam') {
+        setChanged({})
+        list.reload()
+      }
+    } catch (err) {
+      setError(err.message)
+    }
   }
 
   return (
@@ -32,6 +46,16 @@ export default function MessagesPage() {
         </div>
       </div>
 
+      {list.filters.status === 'spam' && (
+        <p className="admin-notice">
+          Senders of spam are blocked: anything else they send is quietly dropped. Use <strong>Not spam</strong> to unblock someone.
+        </p>
+      )}
+      {error && (
+        <p className="admin-alert" role="alert">
+          {error}
+        </p>
+      )}
       {list.loading && <p className="data-empty">Loading…</p>}
       {list.error && <p className="data-empty">Couldn't load messages. Please refresh the page.</p>}
       {list.data?.items.length === 0 && <p className="data-empty">No messages.</p>}
@@ -61,20 +85,31 @@ export default function MessagesPage() {
                     </a>
                   )}
                   <span className="message__spacer" />
-                  {m.status !== 'handled' && (
-                    <button type="button" className="btn btn--purple btn--sm" onClick={() => setStatus(m, 'handled')}>
-                      <HiOutlineCheck aria-hidden="true" /> Mark handled
-                    </button>
-                  )}
-                  {m.status !== 'archived' && (
-                    <button type="button" className="btn btn--outline btn--sm" onClick={() => setStatus(m, 'archived')}>
-                      <HiOutlineArchiveBox aria-hidden="true" /> Archive
-                    </button>
-                  )}
-                  {m.status !== 'new' && (
+                  {m.status === 'spam' ? (
                     <button type="button" className="btn btn--outline btn--sm" onClick={() => setStatus(m, 'new')}>
-                      Mark as new
+                      <HiOutlineCheck aria-hidden="true" /> Not spam
                     </button>
+                  ) : (
+                    <>
+                      {m.status !== 'handled' && (
+                        <button type="button" className="btn btn--purple btn--sm" onClick={() => setStatus(m, 'handled')}>
+                          <HiOutlineCheck aria-hidden="true" /> Mark handled
+                        </button>
+                      )}
+                      {m.status !== 'archived' && (
+                        <button type="button" className="btn btn--outline btn--sm" onClick={() => setStatus(m, 'archived')}>
+                          <HiOutlineArchiveBox aria-hidden="true" /> Archive
+                        </button>
+                      )}
+                      {m.status !== 'new' && (
+                        <button type="button" className="btn btn--outline btn--sm" onClick={() => setStatus(m, 'new')}>
+                          Mark as new
+                        </button>
+                      )}
+                      <button type="button" className="btn btn--outline btn--outline-danger btn--sm" onClick={() => setConfirmSpam(m)}>
+                        <HiOutlineNoSymbol aria-hidden="true" /> Spam
+                      </button>
+                    </>
                   )}
                 </div>
                 {m.handledByName && m.status !== 'new' && (
@@ -88,6 +123,36 @@ export default function MessagesPage() {
           <Pagination page={list.page} pageSize={list.pageSize} total={list.data.total} onPage={list.goTo} />
         </>
       )}
+
+      <Modal
+        open={Boolean(confirmSpam)}
+        size="sm"
+        onClose={() => setConfirmSpam(null)}
+        title="Mark as spam?"
+        description={confirmSpam?.email}
+        footer={
+          <>
+            <button type="button" className="btn btn--outline" onClick={() => setConfirmSpam(null)}>
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="btn btn--danger"
+              onClick={() => {
+                setStatus(confirmSpam, 'spam')
+                setConfirmSpam(null)
+              }}
+            >
+              Mark as spam
+            </button>
+          </>
+        }
+      >
+        <p className="confirm-text">
+          This sender will be blocked: their other new messages move to Spam, and anything they send later is quietly
+          dropped. You can undo this with <strong>Not spam</strong>.
+        </p>
+      </Modal>
     </section>
   )
 }

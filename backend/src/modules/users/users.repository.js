@@ -41,7 +41,28 @@ export async function list({ search } = {}) {
      ORDER BY u.is_active DESC, u.name IS NULL, u.name, u.email`,
     [search ?? '', like, like],
   )
-  return rows.map((row) => toPublic(toUser(row)))
+  return withBarangays(rows.map((row) => toPublic(toUser(row))))
+}
+
+// Adds `barangays` (a coordinator's assigned barangays) to each user.
+export async function withBarangays(users) {
+  if (users.length === 0) return users
+  const [rows] = await db.query(
+    `SELECT ub.user_id, g.id, g.name, g.city FROM user_barangays ub JOIN barangays g ON g.id = ub.barangay_id
+     WHERE ub.user_id IN (?) ORDER BY g.name`,
+    [users.map((u) => u.id)],
+  )
+  return users.map((u) => ({
+    ...u,
+    barangays: rows.filter((r) => r.user_id === u.id).map((r) => ({ id: r.id, name: r.name, city: r.city })),
+  }))
+}
+
+export async function setBarangays(userId, barangayIds) {
+  await db.execute('DELETE FROM user_barangays WHERE user_id = ?', [userId])
+  if (barangayIds.length > 0) {
+    await db.query('INSERT INTO user_barangays (user_id, barangay_id) VALUES ?', [barangayIds.map((id) => [userId, id])])
+  }
 }
 
 export async function create({ email, name = null, role, collegeId = null }) {

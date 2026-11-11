@@ -7,6 +7,16 @@ export async function listActive() {
   return rows.map(toBarangay)
 }
 
+// Barangays assigned to a Community Coordinator.
+export async function listAssigned(userId) {
+  const [rows] = await db.execute(
+    `SELECT g.id, g.name, g.city FROM user_barangays ub JOIN barangays g ON g.id = ub.barangay_id
+     WHERE ub.user_id = ? AND g.is_active = TRUE ORDER BY g.name, g.city`,
+    [userId],
+  )
+  return rows.map(toBarangay)
+}
+
 export async function findById(id) {
   const [rows] = await db.execute('SELECT id, name, city FROM barangays WHERE id = ? AND is_active = TRUE LIMIT 1', [id])
   return toBarangay(rows[0])

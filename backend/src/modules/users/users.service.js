@@ -1,5 +1,6 @@
 import { ROLES } from '../../constants/roles.js'
 import { HttpError } from '../../utils/httpError.js'
+import * as barangaysRepo from '../barangays/barangays.repository.js'
 import * as collegesRepo from '../colleges/colleges.repository.js'
 import * as repo from './users.repository.js'
 
@@ -59,11 +60,25 @@ async function resolveCollegeId(role, collegeId) {
   return collegeId
 }
 
-export async function create(data) {
+// Community Coordinators work with assigned barangays; other roles have none.
+async function resolveBarangayIds(role, barangayIds) {
+  if (role !== ROLES.COORDINATOR) return []
+  for (const id of barangayIds ?? []) {
+    if (!(await barangaysRepo.findById(id))) throw fieldError('barangayIds', 'Choose barangays from the list.')
+  }
+  return barangayIds ?? []
+}
+
+const withBarangays = async (user) => (await repo.withBarangays([user]))[0]
+
+export async function create({ barangayIds, ...data }) {
   if (await repo.findByEmail(data.email)) {
     throw new HttpError(409, 'A user with this email already exists.')
   }
-  return repo.create({ ...data, collegeId: await resolveCollegeId(data.role, data.collegeId) })
+  const assigned = await resolveBarangayIds(data.role, barangayIds)
+  const user = await repo.create({ ...data, collegeId: await resolveCollegeId(data.role, data.collegeId) })
+  await repo.setBarangays(user.id, assigned)
+  return withBarangays(user)
 }
 
 async function getOrThrow(id) {
@@ -82,7 +97,7 @@ async function assertKeepsAnAdmin(user, next) {
 }
 
 // Returns { before, after } (public fields) so callers can audit the change.
-export async function update(id, changes, actor) {
+export async function update(id, { barangayIds, ...changes }, actor) {
   const user = await getOrThrow(id)
   const isSelf = id === actor.id
   if (isSelf && changes.isActive !== undefined) {
@@ -93,14 +108,20 @@ export async function update(id, changes, actor) {
     const collegeId = changes.collegeId !== undefined ? changes.collegeId : user.college?.id
     changes = { ...changes, collegeId: await resolveCollegeId(role, collegeId) }
   }
+  const before = await withBarangays(repo.toPublic(user))
+  // Leaving the coordinator role clears the barangays; otherwise they change only when sent.
+  const role = changes.role ?? user.role
+  const assigned =
+    role !== ROLES.COORDINATOR ? [] : barangayIds !== undefined ? await resolveBarangayIds(role, barangayIds) : null
   // An IT administrator may change their own role, even as the last one (the
   // portal warns first; `npm run user:create` restores access). Changing other
   // people and deactivating still keep at least one IT administrator.
   if (!isSelf) await assertKeepsAnAdmin(user, { ...user, ...changes })
   const updated = await repo.update(id, changes)
+  if (assigned) await repo.setBarangays(id, assigned)
   // Deactivation signs the user out immediately.
   if (user.isActive && changes.isActive === false) await repo.bumpTokenVersion(id)
-  return { before: repo.toPublic(user), after: repo.toPublic(updated) }
+  return { before, after: await withBarangays(repo.toPublic(updated)) }
 }
 
 export async function remove(id, actor) {

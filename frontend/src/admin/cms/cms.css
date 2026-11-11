@@ -25,6 +25,15 @@
   color: #8a5300;
 }
 
+.pill--inquiry-spam {
+  background: #fdecec;
+  color: #a12626;
+}
+
+.message--spam {
+  opacity: 0.75;
+}
+
 .pill--inquiry-handled {
   background: #e7f6ec;
   color: #1e6b3a;

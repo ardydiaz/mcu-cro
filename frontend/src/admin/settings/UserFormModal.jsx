@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { HiOutlineBuildingLibrary, HiOutlineCpuChip, HiOutlineShieldCheck, HiOutlineUserGroup } from 'react-icons/hi2'
 import Modal from '../../components/Modal.jsx'
-import { createUser, listColleges, updateUser } from '../../api/admin.api.js'
+import { createUser, listBarangays, listColleges, updateUser } from '../../api/admin.api.js'
 import { ROLE_LABELS, ROLES } from '../../constants/roles.js'
 
 // Descriptions follow the access matrix in the CRO requirements (Step 5).
@@ -14,12 +14,12 @@ const ROLE_OPTIONS = [
   {
     value: ROLES.COORDINATOR,
     Icon: HiOutlineUserGroup,
-    text: 'Encodes beneficiaries, records services and views related records.',
+    text: 'Encodes beneficiaries and records services in their assigned barangays.',
   },
   {
     value: ROLES.COLLEGE,
     Icon: HiOutlineBuildingLibrary,
-    text: "Their own college's beneficiaries, services and website materials.",
+    text: 'Beneficiaries assigned to their college; records its services and website materials.',
   },
   {
     value: ROLES.IT_ADMIN,
@@ -36,20 +36,28 @@ export default function UserFormModal({ open, user, isSelf, onClose, onSaved }) 
     name: user?.name ?? '',
     role: user?.role ?? ROLES.COORDINATOR,
     collegeId: user?.college?.id ? String(user.college.id) : '',
+    barangayIds: (user?.barangays ?? []).map((b) => b.id),
   }))
   const [colleges, setColleges] = useState([])
+  const [barangays, setBarangays] = useState([])
   const [errors, setErrors] = useState({})
   const [formError, setFormError] = useState('')
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    listColleges()
-      .then(setColleges)
-      .catch(() => setFormError("Couldn't load the list of colleges. Please try again."))
+    Promise.all([listColleges(), listBarangays()])
+      .then(([collegeList, barangayList]) => {
+        setColleges(collegeList)
+        setBarangays(barangayList)
+      })
+      .catch(() => setFormError("Couldn't load the lists of colleges and barangays. Please try again."))
   }, [])
 
   const set = (field) => (e) => setValues((v) => ({ ...v, [field]: e.target.value }))
+  const toggleBarangay = (id) =>
+    setValues((v) => ({ ...v, barangayIds: v.barangayIds.includes(id) ? v.barangayIds.filter((b) => b !== id) : [...v.barangayIds, id] }))
   const isCollege = values.role === ROLES.COLLEGE
+  const isCoordinator = values.role === ROLES.COORDINATOR
   // Giving up your own IT Administrator role also removes your access to this page.
   const leavingItAdmin = isSelf && user.role === ROLES.IT_ADMIN && values.role !== ROLES.IT_ADMIN
 
@@ -58,7 +66,11 @@ export default function UserFormModal({ open, user, isSelf, onClose, onSaved }) 
     setSaving(true)
     setErrors({})
     setFormError('')
-    const access = { role: values.role, collegeId: isCollege && values.collegeId ? Number(values.collegeId) : null }
+    const access = {
+      role: values.role,
+      collegeId: isCollege && values.collegeId ? Number(values.collegeId) : null,
+      barangayIds: isCoordinator ? values.barangayIds : [],
+    }
     try {
       const saved = editing
         ? await updateUser(user.id, { name: values.name, ...access })
@@ -165,6 +177,32 @@ export default function UserFormModal({ open, user, isSelf, onClose, onSaved }) 
             </select>
             {errors.collegeId && <small className="admin-field__error">{errors.collegeId}</small>}
           </label>
+        )}
+
+        {isCoordinator && (
+          <fieldset className="admin-field">
+            <legend>Assigned barangays</legend>
+            <p className="field-hint">They see, add and update only the beneficiaries of these barangays.</p>
+            {barangays.length === 0 ? (
+              <p className="field-hint">No barangays yet. Add them from a beneficiary form first.</p>
+            ) : (
+              <div className="barangay-checks">
+                {barangays.map((b) => (
+                  <label key={b.id} className={`barangay-check${values.barangayIds.includes(b.id) ? ' is-selected' : ''}`}>
+                    <input type="checkbox" checked={values.barangayIds.includes(b.id)} onChange={() => toggleBarangay(b.id)} />
+                    <span>
+                      {b.name}
+                      <small>{b.city}</small>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            )}
+            {values.barangayIds.length === 0 && barangays.length > 0 && (
+              <p className="admin-warning">Without barangays, this coordinator won't see any beneficiaries.</p>
+            )}
+            {errors.barangayIds && <small className="admin-field__error">{errors.barangayIds}</small>}
+          </fieldset>
         )}
 
         {formError && (

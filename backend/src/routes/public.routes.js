@@ -7,6 +7,7 @@ import { idParamSchema, todayInManila } from '../validators/common.js'
 import { createInquirySchema, fileParamSchema, listPostsSchema, listResourcesSchema, slugParamSchema } from '../validators/content.js'
 import * as directory from '../modules/content/directory.repository.js'
 import * as inquiries from '../modules/content/inquiries.repository.js'
+import { issueFormToken, screen as screenInquiry } from '../modules/content/inquiryGuard.js'
 import * as postsRepo from '../modules/content/posts.repository.js'
 import * as resourcesRepo from '../modules/content/resources.repository.js'
 import * as files from '../modules/files/files.service.js'
@@ -37,12 +38,18 @@ router.get('/home', async (req, res) => {
   const options = { ...PUBLIC, today }
   let featured = await resourcesRepo.list({ featured: true, pageSize: 6 }, PUBLIC)
   if (featured.items.length === 0) featured = await resourcesRepo.list({ pageSize: 6 }, PUBLIC)
+  const programs = await directory.programs()
   res.json({
     announcements: (await postsRepo.list({ kind: 'announcement', pageSize: 3 }, options)).items,
-    upcoming: (await postsRepo.list({ kind: 'activity', when: 'upcoming', pageSize: 3 }, options)).items,
+    upcoming: (await postsRepo.list({ kind: 'activity', when: 'upcoming', pageSize: 8 }, options)).items,
     recent: (await postsRepo.list({ kind: 'activity', when: 'past', pageSize: 6 }, options)).items,
     featuredResources: featured.items,
-    featuredPrograms: (await directory.programs()).filter((p) => p.isFeatured).slice(0, 6),
+    featuredPrograms: programs.filter((p) => p.isFeatured).slice(0, 6),
+    // Names for the scrolling ticker; both lists are managed in the admin portal.
+    ticker: {
+      programs: programs.slice(0, 12).map((p) => p.name),
+      partners: (await directory.barangays()).filter((b) => b.isPartner).map((b) => b.name),
+    },
     impact: await impact(),
   })
 })
@@ -156,10 +163,15 @@ router.get('/partners', async (req, res) => {
 })
 
 // ---------- Contact form ----------
+// The form asks for a signed timestamp when it is shown; messages sent too
+// fast after it, or without it, come from bots (see inquiryGuard.js).
+router.get('/inquiries/form-token', (req, res) => {
+  res.set('Cache-Control', 'no-store').json({ token: issueFormToken() })
+})
+
 router.post('/inquiries', inquiryLimiter, validate(createInquirySchema), async (req, res) => {
-  // Filled-in spam trap: pretend it worked so bots learn nothing.
-  if (req.body.website) return res.status(201).json({ ok: true })
-  await inquiries.create(req.body, req.ip)
+  // Spam is answered as if it was sent, so bots learn nothing.
+  if ((await screenInquiry(req.body)) === 'accept') await inquiries.create(req.body, req.ip)
   res.status(201).json({ ok: true })
 })
 

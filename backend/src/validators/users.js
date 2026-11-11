@@ -19,11 +19,18 @@ const role = z.enum(ALL_ROLES, { error: 'Choose a valid role.' })
 // Required (and checked against the colleges table) only for College/Department users.
 const collegeId = z.number({ error: 'Choose a valid college or department.' }).int().positive().nullable()
 
+// Community Coordinators only: the barangays whose beneficiaries they handle.
+const barangayIds = z
+  .array(z.number().int().positive(), { error: 'Choose valid barangays.' })
+  .max(500)
+  .transform((ids) => [...new Set(ids)])
+
 export const createUserSchema = z.object({
   email,
   name: name.optional(),
   role,
   collegeId: collegeId.optional(),
+  barangayIds: barangayIds.optional(),
 })
 
 export const updateUserSchema = z
@@ -31,6 +38,7 @@ export const updateUserSchema = z
     name: name.optional(),
     role: role.optional(),
     collegeId: collegeId.optional(),
+    barangayIds: barangayIds.optional(),
     isActive: z.boolean().optional(),
   })
   .refine((data) => Object.values(data).some((v) => v !== undefined), 'Nothing to update.')
