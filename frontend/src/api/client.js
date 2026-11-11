@@ -37,12 +37,13 @@ export function refreshSession() {
   return refreshing
 }
 
-async function send(path, { headers, ...options } = {}) {
+// `as`: 'json' (default) or 'blob' (files). FormData bodies (uploads) set their own content type.
+async function send(path, { headers, as = 'json', ...options } = {}) {
   const res = await fetch(`${API_URL}${path}`, {
     credentials: 'include',
     ...options,
     headers: {
-      'Content-Type': 'application/json',
+      ...(!(options.body instanceof FormData) && { 'Content-Type': 'application/json' }),
       ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
       ...headers,
     },
@@ -51,7 +52,8 @@ async function send(path, { headers, ...options } = {}) {
     const body = await res.json().catch(() => null)
     throw new ApiError(res.status, body?.error ?? res.statusText, body?.details)
   }
-  return res.status === 204 ? null : res.json()
+  if (res.status === 204) return null
+  return as === 'blob' ? res.blob() : res.json()
 }
 
 export async function request(path, options) {

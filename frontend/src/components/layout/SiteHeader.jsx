@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink, useLocation } from 'react-router-dom'
 import { HiOutlineMenuAlt3, HiX } from 'react-icons/hi'
-import { NAV_LINKS, SITE } from '../../constants/site.js'
+import { CONTACT_LINK, NAV_LINKS, SITE } from '../../constants/site.js'
 import './site-header.css'
 
 export default function SiteHeader() {
@@ -57,8 +57,8 @@ export default function SiteHeader() {
             ))}
           </ul>
           <div className="site-nav__actions">
-            <Link to="/give" className="btn btn--gold">
-              Give
+            <Link to={CONTACT_LINK.to} className="btn btn--gold">
+              {CONTACT_LINK.label}
             </Link>
           </div>
         </nav>

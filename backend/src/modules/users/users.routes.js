@@ -5,10 +5,11 @@ import { ROLES } from '../../constants/roles.js'
 import { createUserSchema, listUsersSchema, updateUserSchema } from '../../validators/users.js'
 import * as controller from './users.controller.js'
 
-// Mounted at /api/admin/users. Managing portal users is admin-only.
+// Mounted at /api/admin/users. Per the requirements, access management belongs
+// to the IT Administrator.
 const router = Router()
 
-router.use(requireRole(ROLES.ADMIN))
+router.use(requireRole(ROLES.IT_ADMIN))
 
 router.get('/', validate(listUsersSchema, 'query'), controller.list)
 router.post('/', validate(createUserSchema), controller.create)

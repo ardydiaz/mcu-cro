@@ -1,5 +1,5 @@
-// Static homepage content taken from the current cro.mcu.edu.ph site.
-// Replace with data from /api/public once the CMS is in place.
+// Fixed homepage content taken from the current cro.mcu.edu.ph site. News,
+// announcements, programs and learning materials come from /api/public.
 import { HiOutlineHeart, HiOutlineLightBulb, HiOutlineGlobeAsiaAustralia } from 'react-icons/hi2'
 import { HiOutlineAcademicCap } from 'react-icons/hi'
 import { PiPlant, PiFirstAidKit } from 'react-icons/pi'
@@ -56,58 +56,5 @@ export const PILLARS = [
     title: 'Health & Wellness',
     items: ['Awareness Lectures', 'Consultation', 'Medical Missions'],
     sdgs: sdgs(2, 3, 17),
-  },
-]
-
-// Newest first.
-export const NEWS = [
-  {
-    slug: 'malusog-na-atay-masayang-buhay',
-    title: 'MCU x Caloocan City Health Dept: Malusog na Atay, Masayang Buhay',
-    date: '2026-04-08',
-    image: '/images/news/malusog-na-atay.jpg',
-    tag: 'Health & Wellness',
-  },
-  {
-    slug: 'lifeline-2026-blood-donation',
-    title: 'Lifeline 2026: A Blood Donation Initiative',
-    date: '2026-04-08',
-    image: '/images/news/lifeline-2026.jpg',
-    tag: 'Health & Wellness',
-  },
-  {
-    slug: 'pusong-masigla-ngiting-masaya',
-    title: 'Pusong Masigla, Ngiting Masaya',
-    date: '2026-04-08',
-    image: '/images/news/pusong-masigla.jpg',
-    tag: 'Outreach',
-  },
-  {
-    slug: 'proud-moment-community-partnership',
-    title: 'A proud moment for community partnership efforts!',
-    date: '2026-04-08',
-    image: '/images/news/oca-awards.jpg',
-    tag: 'Recognition',
-  },
-  {
-    slug: 'welcome-event-mcu-students',
-    title: 'Welcome event for MCU students',
-    date: '2025-08-15',
-    image: '/images/news/welcome-event.jpg',
-    tag: 'Events',
-  },
-  {
-    slug: 'mcu-medical-mission',
-    title: 'MCU Medical Mission',
-    date: '2025-03-06',
-    image: '/images/news/medical-mission.jpg',
-    tag: 'Health & Wellness',
-  },
-  {
-    slug: 'memorandum-signing',
-    title: 'Memorandum Signing',
-    date: '2025-03-04',
-    image: '/images/news/memorandum-signing.jpg',
-    tag: 'Partnerships',
   },
 ]

@@ -9,14 +9,19 @@ export const SITE = {
   email: 'eao.mcu1904@gmail.com',
 }
 
+// Website sections from the CRO requirements (Project 1, Step 2). Contact is
+// shown as the header's call-to-action button instead of a menu link.
 export const NAV_LINKS = [
   { to: '/', label: 'Home' },
   { to: '/about', label: 'About' },
+  { to: '/colleges', label: 'Colleges' },
   { to: '/programs-services', label: 'Programs & Services' },
+  { to: '/learning-resources', label: 'Learning Resources' },
   { to: '/activities', label: 'Activities' },
   { to: '/partner-communities', label: 'Partners' },
-  { to: '/contact', label: 'Contact' },
 ]
+
+export const CONTACT_LINK = { to: '/contact', label: 'Contact us' }
 
 export const SOCIAL_LINKS = [
   { href: 'https://www.facebook.com/MCU1904/', label: 'Facebook', handle: '@MCU1904', Icon: FaFacebookF },

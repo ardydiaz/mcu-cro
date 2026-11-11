@@ -1,20 +1,27 @@
 import { Link } from 'react-router-dom'
-import { HiArrowRight, HiArrowUpRight, HiCheck, HiHeart, HiOutlineMapPin } from 'react-icons/hi2'
+import { HiArrowRight, HiArrowUpRight, HiHeart, HiOutlineMapPin, HiOutlineMegaphone, HiOutlineSparkles } from 'react-icons/hi2'
 import HeroSlider from '../../components/HeroSlider.jsx'
 import SectionHeading from '../../components/SectionHeading.jsx'
+import { ResourceCard } from '../../components/content/ContentCards.jsx'
+import { formatDate } from '../../components/content/contentFormat.js'
+import { getHome } from '../../api/public.api.js'
+import useApi from '../../hooks/useApi.js'
 import useReveal from '../../hooks/useReveal.js'
 import ContactSection from './ContactSection.jsx'
-import { COMMITMENTS, HERO_SLIDES, NEWS, PILLARS } from './homeContent.js'
+import PillarCards from './PillarCards.jsx'
+import { COMMITMENTS, HERO_SLIDES, PILLARS } from './homeContent.js'
 import './home.css'
-
-const formatDate = (iso) =>
-  new Date(`${iso}T00:00:00`).toLocaleDateString('en-PH', { year: 'numeric', month: 'long', day: 'numeric' })
 
 const TICKER = PILLARS.flatMap((pillar) => [pillar.title, ...pillar.items])
 
+// Requirements §1 Home: introduction to MCU Community Relations, featured
+// community programs, announcements, and featured learning materials
+// ("Alaga Ko Barangay Ko: Alaga sa Bawat Edad").
 export default function HomePage() {
-  const ref = useReveal()
-  const [latest, ...others] = NEWS
+  const { data } = useApi(getHome, [])
+  const ref = useReveal([Boolean(data)])
+  const latest = data?.upcoming[0] ?? data?.recent[0]
+  const stories = data?.recent ?? []
 
   return (
     <div ref={ref}>
@@ -30,21 +37,23 @@ export default function HomePage() {
               <a href="#pillars" className="btn btn--gold">
                 Explore our pillars <HiArrowRight aria-hidden="true" />
               </a>
-              <Link to="/give" className="btn btn--ghost">
-                Give to CRO
+              <Link to="/learning-resources" className="btn btn--ghost">
+                Learning resources
               </Link>
             </div>
           </div>
 
-          <Link to={`/activities/${latest.slug}`} className="home-hero__latest">
-            <img src={latest.image} alt="" />
-            <div>
-              <span className="home-hero__latest-label">Latest story</span>
-              <strong>{latest.title}</strong>
-              <time dateTime={latest.date}>{formatDate(latest.date)}</time>
-            </div>
-            <HiArrowUpRight aria-hidden="true" className="home-hero__latest-arrow" />
-          </Link>
+          {latest && (
+            <Link to={`/activities/${latest.slug}`} className="home-hero__latest">
+              {latest.coverUrl && <img src={latest.coverUrl} alt="" />}
+              <div>
+                <span className="home-hero__latest-label">{latest === data.upcoming[0] ? 'Upcoming activity' : 'Latest story'}</span>
+                <strong>{latest.title}</strong>
+                <time dateTime={latest.eventDate}>{formatDate(latest.eventDate)}</time>
+              </div>
+              <HiArrowUpRight aria-hidden="true" className="home-hero__latest-arrow" />
+            </Link>
+          )}
         </div>
       </HeroSlider>
 
@@ -60,6 +69,31 @@ export default function HomePage() {
           ))}
         </div>
       </div>
+
+      {/* Announcements */}
+      {data?.announcements.length > 0 && (
+        <section className="announcements" aria-labelledby="announcements-title">
+          <div className="container announcements__inner">
+            <h2 id="announcements-title">
+              <HiOutlineMegaphone aria-hidden="true" /> Announcements
+            </h2>
+            <ul>
+              {data.announcements.map((a) => (
+                <li key={a.id}>
+                  <Link to={`/activities/${a.slug}`}>
+                    <time dateTime={a.eventDate}>{formatDate(a.eventDate, { month: 'short', day: 'numeric' })}</time>
+                    <span>{a.title}</span>
+                    <HiArrowRight aria-hidden="true" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <Link to="/activities?tab=announcements" className="announcements__all">
+              All announcements
+            </Link>
+          </div>
+        </section>
+      )}
 
       {/* Who we are */}
       <section className="section about" aria-labelledby="about-title">
@@ -109,16 +143,35 @@ export default function HomePage() {
             </ol>
 
             <div className="about__actions reveal">
-              <a href="#pillars" className="btn btn--purple">
-                Explore our pillars <HiArrowRight aria-hidden="true" />
-              </a>
+              <Link to="/about" className="btn btn--purple">
+                About Community Relations <HiArrowRight aria-hidden="true" />
+              </Link>
               <Link to="/partner-communities" className="about__link">
-                Partner with us <HiArrowRight aria-hidden="true" />
+                Our partner communities <HiArrowRight aria-hidden="true" />
               </Link>
             </div>
           </div>
         </div>
       </section>
+
+      {/* Impact in numbers (totals only) */}
+      {data?.impact.services > 0 && (
+        <section className="impact" aria-label="Our reach">
+          <dl className="container impact__grid">
+            {[
+              ['Beneficiaries served', data.impact.beneficiaries],
+              ['Services rendered', data.impact.services],
+              ['Partner barangays', data.impact.barangays],
+              ['Colleges & departments involved', data.impact.colleges],
+            ].map(([label, value]) => (
+              <div key={label} className="reveal">
+                <dd>{value.toLocaleString()}</dd>
+                <dt>{label}</dt>
+              </div>
+            ))}
+          </dl>
+        </section>
+      )}
 
       {/* CRO Pillars (dark section) */}
       <section id="pillars" className="section pillars" aria-labelledby="pillars-title">
@@ -127,77 +180,95 @@ export default function HomePage() {
             Our outreach is organized around three pillars, each aligned with the UN Sustainable Development Goals.
           </SectionHeading>
 
-          <div className="pillars__grid">
-            {PILLARS.map(({ key, Icon, title, items, sdgs }, i) => (
-              <article key={key} className={`pillar pillar--${key} reveal`} style={{ '--reveal-delay': `${i * 120}ms` }}>
-                <div className="pillar__top">
-                  <span className="pillar__icon">
-                    <Icon aria-hidden="true" />
-                  </span>
-                  <span className="pillar__number" aria-hidden="true">
-                    0{i + 1}
-                  </span>
-                </div>
-                <h3>{title}</h3>
-                <ul className="pillar__items">
-                  {items.map((item) => (
-                    <li key={item}>
-                      <HiCheck aria-hidden="true" />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-                <div className="pillar__sdgs">
-                  <span>Supports SDGs</span>
-                  <ul>
-                    {sdgs.map(({ n, name, src }) => (
-                      <li key={n}>
-                        <img src={src} alt={`SDG ${n}: ${name}`} title={`SDG ${n}: ${name}`} width="52" height="52" loading="lazy" />
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </article>
-            ))}
-          </div>
+          <PillarCards />
         </div>
       </section>
 
-      {/* Outreach News */}
-      <section className="section news" aria-labelledby="news-title">
+      {/* Featured community programs */}
+      {data?.featuredPrograms.length > 0 && (
+        <section className="section featured-programs" aria-labelledby="programs-title">
+          <div className="container">
+            <div className="news__header">
+              <SectionHeading id="programs-title" eyebrow="Featured community programs" title="Programs in our communities" />
+              <Link to="/programs-services" className="btn btn--outline reveal">
+                Programs & services <HiArrowRight aria-hidden="true" />
+              </Link>
+            </div>
+            <ul className="featured-programs__grid">
+              {data.featuredPrograms.map((p, i) => (
+                <li key={p.id} className="reveal" style={{ '--reveal-delay': `${i * 80}ms` }}>
+                  <HiOutlineSparkles aria-hidden="true" />
+                  <h3>{p.name}</h3>
+                  {p.description && <p>{p.description}</p>}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </section>
+      )}
+
+      {/* Featured learning materials */}
+      <section className="section featured-materials" aria-labelledby="materials-title">
         <div className="container">
           <div className="news__header">
-            <SectionHeading id="news-title" eyebrow="Latest stories" title="Outreach News">
-              Highlights from our recent activities with partner communities.
+            <SectionHeading id="materials-title" eyebrow="Featured learning materials" title="Alaga Ko Barangay Ko: Alaga sa Bawat Edad">
+              Health videos, modules and materials from MCU colleges, for every age.
             </SectionHeading>
-            <Link to="/activities" className="btn btn--outline reveal">
-              View all activities <HiArrowRight aria-hidden="true" />
+            <Link to="/learning-resources" className="btn btn--outline reveal">
+              All learning resources <HiArrowRight aria-hidden="true" />
             </Link>
           </div>
-
-          <div className="news__grid">
-            {others.slice(0, 5).map((post, i) => (
-              <NewsCard key={post.slug} post={post} featured={i === 0} delay={i * 80} />
-            ))}
-          </div>
+          {data?.featuredResources.length > 0 ? (
+            <div className="resource-grid">
+              {data.featuredResources.map((r) => (
+                <ResourceCard key={r.id} resource={r} />
+              ))}
+            </div>
+          ) : (
+            <p className="featured-materials__soon reveal">
+              Learning materials from MCU colleges and departments are being prepared. Please check back soon.
+            </p>
+          )}
         </div>
       </section>
+
+      {/* Outreach News: the latest published activities */}
+      {stories.length > 0 && (
+        <section className="section news" aria-labelledby="news-title">
+          <div className="container">
+            <div className="news__header">
+              <SectionHeading id="news-title" eyebrow="Latest stories" title="Outreach News">
+                Highlights from our recent activities with partner communities.
+              </SectionHeading>
+              <Link to="/activities" className="btn btn--outline reveal">
+                View all activities <HiArrowRight aria-hidden="true" />
+              </Link>
+            </div>
+
+            <div className="news__grid">
+              {stories.slice(latest === stories[0] ? 1 : 0, 6).map((post, i) => (
+                <NewsCard key={post.id} post={post} featured={i === 0} delay={i * 80} />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Call to action */}
       <section className="cta" aria-labelledby="cta-title">
         <div className="container">
           <div className="cta__card reveal">
             <div className="cta__copy">
-              <span className="eyebrow eyebrow--light">Get involved</span>
-              <h2 id="cta-title">Be part of the change</h2>
-              <p>Support Centralino-led outreach through donations, volunteering, and community partnerships.</p>
+              <span className="eyebrow eyebrow--light">Work with us</span>
+              <h2 id="cta-title">Bring MCU's programs to your community</h2>
+              <p>Barangays, schools and organizations can coordinate outreach activities and services with the Community Relations Office.</p>
             </div>
             <div className="cta__actions">
-              <Link to="/give" className="btn btn--gold">
-                Give now <HiArrowRight aria-hidden="true" />
+              <Link to="/contact?topic=partnership" className="btn btn--gold">
+                Coordinate with CRO <HiArrowRight aria-hidden="true" />
               </Link>
-              <Link to="/partner-communities" className="btn btn--ghost">
-                Partner with us
+              <Link to="/programs-services" className="btn btn--ghost">
+                Programs & services
               </Link>
             </div>
           </div>
@@ -233,11 +304,11 @@ function NewsCard({ post, featured = false, delay = 0 }) {
     <article className={`news-card reveal${featured ? ' news-card--featured' : ''}`} style={{ '--reveal-delay': `${delay}ms` }}>
       <Link to={`/activities/${post.slug}`} className="news-card__link">
         <div className="news-card__media">
-          <img src={post.image} alt="" loading="lazy" />
-          <span className="news-card__tag">{post.tag}</span>
+          {post.coverUrl && <img src={post.coverUrl} alt="" loading="lazy" />}
+          <span className="news-card__tag">{post.program?.name ?? 'Outreach'}</span>
         </div>
         <div className="news-card__body">
-          <time dateTime={post.date}>{formatDate(post.date)}</time>
+          <time dateTime={post.eventDate}>{formatDate(post.eventDate)}</time>
           <h3>{post.title}</h3>
           <span className="news-card__more">
             Read story <HiArrowRight aria-hidden="true" />

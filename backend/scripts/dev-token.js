@@ -14,7 +14,7 @@ if (!email) {
 const user = await findByEmail(email)
 await db.end()
 if (!user) {
-  console.error(`No user with email ${email}. Create one first: npm run user:create -- ${email} admin`)
+  console.error(`No user with email ${email}. Create one first: npm run user:create -- ${email} it_admin`)
   process.exit(1)
 }
 console.log(JSON.stringify(issueTokens(toSessionUser(user)), null, 2))

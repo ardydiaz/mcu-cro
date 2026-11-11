@@ -4,7 +4,7 @@ Staff sign in to the admin portal with their MCU Microsoft 365 account. The two
 parts have separate jobs:
 
 - **Microsoft 365 (Entra ID)** proves *who* the person is. No app roles are needed in Entra.
-- **The `users` table (MySQL)** decides *whether* they get in and *what* they can do: `admin` or `staff`, active or deactivated.
+- **The `users` table (MySQL)** decides *whether* they get in and *what* they can do: their role (see below), their college for College/Department users, and whether the account is active.
 
 After sign-in, the backend issues its own JWTs:
 
@@ -47,22 +47,39 @@ DB_PASSWORD=<your MySQL password>
 
 Create the database and tables with `npm run db:migrate` (in `backend/`).
 
-## 4. Add the first administrator
+## 4. Add the first IT administrator
 
-Nobody can sign in until they are in the `users` table. Create the first admin from the command line:
+Nobody can sign in until they are in the `users` table. Create the first IT administrator from the command line:
 
 ```sh
-npm run user:create -- you@mcu.edu.ph admin "Your Name"
+npm run user:create -- you@mcu.edu.ph it_admin "Your Name"
 ```
 
-Then open http://localhost:2001/admin and click **Sign in with Microsoft 365**. From then on, manage everyone else in the portal under **Settings → Users**:
+Then open http://localhost:2001/admin and click **Sign in with Microsoft 365**. From then on, the IT administrator manages everyone else in the portal under **Settings → Users**:
 
-- **Add user:** enter their MCU Microsoft 365 email and pick a role. They can sign in right away.
-- **Edit:** change the name or role.
-- **Deactivate:** blocks sign-in while keeping the account and its history. Reactivate any time.
+- **Add user:** enter their MCU Microsoft 365 email and pick a role (and a college for College/Department users). They can sign in right away.
+- **Edit:** change the name, role or college.
+- **Deactivate:** blocks sign-in and signs them out immediately, while keeping the account and its history. Reactivate any time.
 - **Remove:** deletes the account.
 
-Safeguards: you can't change your own role or deactivate yourself, and the portal always keeps at least one active administrator.
+Safeguards: you can't deactivate or remove yourself, and you can't demote, deactivate or remove the last active IT administrator. You *can* change your own role (the portal warns you first). If you were the last IT administrator, restore access with `npm run user:create -- you@mcu.edu.ph it_admin`.
+
+### Roles
+
+The roles follow the CRO requirements (Project 2, Step 5 – Determine User Access):
+
+| Role | Value | Can use |
+|---|---|---|
+| CRO Administrator | `cro_admin` | All beneficiary records and community data, programs, reports; publishes website content and reads contact messages; can remove records |
+| Community Coordinator | `coordinator` | Adds and edits beneficiaries, records services and referrals; publishes website content and reads contact messages |
+| College/Department User | `college` | Views beneficiaries; records services and referrals **for their own college only**, and sees only services of their college and referrals from or to it. Prepares learning materials and activities for their college and **submits them to CRO for review**; describes their college on the website |
+| IT Administrator | `it_admin` | Everything: all pages above, plus Settings and user accounts |
+
+From the command line, a College/Department user also needs the college code (COM, COD, CPT, CON, CPH, COO, CMT, CAS, BED, IOE, SBM):
+
+```sh
+npm run user:create -- juan@mcu.edu.ph college "Juan dela Cruz" COM
+```
 
 On first sign-in the account is linked to the person's Microsoft 365 identity (`entra_oid`). If that email address is later given to a different person, the new person can't use the old access.
 
@@ -70,7 +87,8 @@ On first sign-in the account is linked to the person's Microsoft 365 identity (`
 
 | Measure | Where |
 |---|---|
-| Every `/api` route except `/api/health` and `/api/auth/*` requires a JWT. Each request re-checks in MySQL that the user is active and the token isn't revoked; roles are read fresh from the database. | `middleware/requireAuth.js` |
+| `/api/public/*` (the Community Website) needs no sign-in, but is read-only and returns only published content and totals, never beneficiary records. Its contact form is limited to 5 messages per IP per hour, has a spam trap, and is protected by the origin check. Uploaded files are public only while attached to published content, and each upload's actual content is checked against its file type. | `routes/public.routes.js`, `modules/files` |
+| Every other `/api` route except `/api/health` and `/api/auth/*` requires a JWT. Each request re-checks in MySQL that the user is active and the token isn't revoked; roles are read fresh from the database. | `middleware/requireAuth.js` |
 | Instant revocation: deactivating a user, or **Sign out of all devices**, increments `users.token_version`, which invalidates every token issued before | `users.service.js`, `/api/auth/logout-all` |
 | Rate limits: sign-in 100 / 15 min per IP, refresh 300 / 15 min per IP, API 1,500 / 15 min per user | `middleware/rateLimit.js` |
 | Cross-site request blocking on every non-GET request (`Origin` must be `FRONTEND_URL`) | `middleware/checkOrigin.js` |

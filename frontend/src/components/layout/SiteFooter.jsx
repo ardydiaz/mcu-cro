@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 import { HiOutlineLocationMarker, HiOutlinePhone, HiOutlineMail } from 'react-icons/hi'
-import { NAV_LINKS, SITE, SOCIAL_LINKS } from '../../constants/site.js'
+import { CONTACT_LINK, NAV_LINKS, SITE, SOCIAL_LINKS } from '../../constants/site.js'
 import './site-footer.css'
 
 const YEAR = new Date().getFullYear()
@@ -29,14 +29,11 @@ export default function SiteFooter() {
         <div>
           <h2 className="site-footer__title">Explore</h2>
           <ul className="site-footer__links">
-            {NAV_LINKS.map(({ to, label }) => (
+            {[...NAV_LINKS, CONTACT_LINK].map(({ to, label }) => (
               <li key={to}>
                 <Link to={to}>{label}</Link>
               </li>
             ))}
-            <li>
-              <Link to="/give">Give</Link>
-            </li>
           </ul>
         </div>
 

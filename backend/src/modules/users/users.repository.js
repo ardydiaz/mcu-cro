@@ -1,7 +1,9 @@
 import { randomUUID } from 'node:crypto'
 import { db } from '../../config/db.js'
 
-const COLUMNS = 'id, email, name, role, is_active, entra_oid, token_version, last_login_at, created_at, updated_at'
+const SELECT = `SELECT u.id, u.email, u.name, u.role, u.college_id, u.is_active, u.entra_oid, u.token_version,
+                       u.last_login_at, u.created_at, u.updated_at, c.code AS college_code, c.name AS college_name
+                FROM users u LEFT JOIN colleges c ON c.id = u.college_id`
 
 // Database row → object. entraOid and tokenVersion stay internal (sign-in and
 // session checks only) and are stripped by toPublic before reaching the API.
@@ -11,6 +13,7 @@ const toUser = (row) =>
     email: row.email,
     name: row.name,
     role: row.role,
+    college: row.college_id ? { id: row.college_id, code: row.college_code, name: row.college_name } : null,
     isActive: Boolean(row.is_active),
     entraOid: row.entra_oid,
     tokenVersion: row.token_version,
@@ -22,7 +25,7 @@ const toUser = (row) =>
 const toPublic = ({ entraOid, tokenVersion, ...user }) => user // eslint-disable-line no-unused-vars
 
 async function findOne(where, value) {
-  const [rows] = await db.execute(`SELECT ${COLUMNS} FROM users WHERE ${where} = ? LIMIT 1`, [value])
+  const [rows] = await db.execute(`${SELECT} WHERE u.${where} = ? LIMIT 1`, [value])
   return toUser(rows[0])
 }
 
@@ -33,22 +36,35 @@ export const findByEntraOid = (entraOid) => findOne('entra_oid', entraOid)
 export async function list({ search } = {}) {
   const like = `%${search ?? ''}%`
   const [rows] = await db.execute(
-    `SELECT ${COLUMNS} FROM users
-     WHERE ? = '' OR email LIKE ? OR name LIKE ?
-     ORDER BY is_active DESC, name IS NULL, name, email`,
+    `${SELECT}
+     WHERE ? = '' OR u.email LIKE ? OR u.name LIKE ?
+     ORDER BY u.is_active DESC, u.name IS NULL, u.name, u.email`,
     [search ?? '', like, like],
   )
   return rows.map((row) => toPublic(toUser(row)))
 }
 
-export async function create({ email, name = null, role }) {
+export async function create({ email, name = null, role, collegeId = null }) {
   const id = randomUUID()
-  await db.execute('INSERT INTO users (id, email, name, role) VALUES (?, ?, ?, ?)', [id, email, name, role])
+  await db.execute('INSERT INTO users (id, email, name, role, college_id) VALUES (?, ?, ?, ?, ?)', [
+    id,
+    email,
+    name,
+    role,
+    collegeId,
+  ])
   return toPublic(await findById(id))
 }
 
 // Only these fields can be changed; keys map API names → columns.
-const UPDATABLE = { name: 'name', role: 'role', isActive: 'is_active', entraOid: 'entra_oid', lastLoginAt: 'last_login_at' }
+const UPDATABLE = {
+  name: 'name',
+  role: 'role',
+  collegeId: 'college_id',
+  isActive: 'is_active',
+  entraOid: 'entra_oid',
+  lastLoginAt: 'last_login_at',
+}
 
 // Returns the full internal user (callers decide what to expose).
 export async function update(id, changes) {
@@ -71,7 +87,7 @@ export async function remove(id) {
   await db.execute('DELETE FROM users WHERE id = ?', [id])
 }
 
-export async function countActiveAdmins() {
-  const [[{ total }]] = await db.execute("SELECT COUNT(*) AS total FROM users WHERE role = 'admin' AND is_active = TRUE")
+export async function countActive(role) {
+  const [[{ total }]] = await db.execute('SELECT COUNT(*) AS total FROM users WHERE role = ? AND is_active = TRUE', [role])
   return Number(total)
 }

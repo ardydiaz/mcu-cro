@@ -1,121 +1,4 @@
-/* ---------- Users panel ---------- */
-.users-panel {
-  margin-top: 0;
-  padding: 0;
-  overflow: hidden;
-}
-
-.users-panel__top {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 20px 24px;
-  border-bottom: 1px solid var(--line);
-}
-
-.users-panel__top h2 {
-  margin: 0;
-}
-
-.users-panel__meta {
-  margin-top: 2px;
-  font-size: 0.85rem;
-  color: var(--ink-500);
-}
-
-.users-panel__tools {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.search-input {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 240px;
-  padding: 0 14px;
-  border: 1.5px solid var(--line);
-  border-radius: 999px;
-  background: var(--purple-50);
-  color: var(--ink-500);
-  transition:
-    border-color 0.2s,
-    box-shadow 0.2s,
-    background-color 0.2s;
-}
-
-.search-input:focus-within {
-  border-color: var(--purple-600);
-  background: var(--surface);
-  box-shadow: 0 0 0 4px rgb(113 44 131 / 0.12);
-}
-
-.search-input input {
-  flex: 1;
-  min-width: 0;
-  padding: 10px 0;
-  border: 0;
-  outline: 0;
-  background: none;
-  color: var(--ink-900);
-}
-
-.users-empty {
-  padding: 40px 24px;
-  text-align: center;
-  color: var(--ink-500);
-}
-
-/* ---------- Table ---------- */
-.users-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.users-table th {
-  padding: 12px 24px;
-  background: var(--purple-50);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-align: left;
-  text-transform: uppercase;
-  color: var(--ink-500);
-}
-
-.users-table td {
-  padding: 14px 24px;
-  border-top: 1px solid var(--line);
-  font-size: 0.92rem;
-  vertical-align: middle;
-}
-
-.users-table tbody tr {
-  transition: background-color 0.2s;
-}
-
-.users-table tbody tr:hover {
-  background: #fcfbfd;
-}
-
-.users-table tr.is-inactive .user-cell,
-.users-table tr.is-inactive .role-pill {
-  opacity: 0.55;
-}
-
-.users-table__muted {
-  color: var(--ink-500);
-  white-space: nowrap;
-}
-
-.users-table__actions {
-  white-space: nowrap;
-  text-align: right;
-}
-
+/* Settings → Users: page-specific pieces (shared UI is in admin-ui.css). */
 .user-cell {
   display: flex;
   align-items: center;
@@ -171,14 +54,31 @@
   font-weight: 700;
 }
 
-.role-pill--admin {
+.role-pill--cro_admin {
   background: var(--purple-100);
   color: var(--purple-700);
 }
 
-.role-pill--staff {
+.role-pill--coordinator {
   background: #e7f2fb;
   color: #1d5f8f;
+}
+
+.role-pill--college {
+  background: #e7f6ec;
+  color: #1e6b3a;
+}
+
+.role-pill--it_admin {
+  background: #eceaf0;
+  color: #3d3550;
+}
+
+.role-college {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.78rem;
+  color: var(--ink-500);
 }
 
 .status-dot {
@@ -206,139 +106,13 @@
   box-shadow: 0 0 0 3px rgb(47 179 106 / 0.18);
 }
 
-.icon-btn {
-  display: inline-grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  margin-left: 4px;
-  border: 1px solid transparent;
-  border-radius: 10px;
-  background: none;
-  color: var(--ink-500);
-  font-size: 1.15rem;
-  cursor: pointer;
-  transition:
-    background-color 0.2s,
-    color 0.2s,
-    border-color 0.2s;
-}
-
-.icon-btn:hover {
-  border-color: var(--line);
-  background: var(--purple-50);
-  color: var(--purple-700);
-}
-
-.icon-btn--danger:hover {
-  background: #fdecec;
-  color: #b42318;
-}
-
-/* ---------- Notices ---------- */
-.admin-notice {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin: 16px 24px 0;
-  padding: 12px 16px;
-  border-radius: 12px;
-  font-size: 0.9rem;
-}
-
-.admin-notice button {
-  border: 0;
-  background: none;
-  font-size: 1.3rem;
-  line-height: 1;
-  color: inherit;
-  cursor: pointer;
-}
-
-.admin-notice--success {
-  background: #e7f6ec;
-  color: #1e6b3a;
-}
-
-.admin-notice--error {
-  background: #fdecec;
-  color: #a12626;
-}
-
-/* ---------- Form ---------- */
-.admin-form {
-  display: grid;
-  gap: 18px;
-}
-
-.admin-field {
-  display: grid;
-  gap: 8px;
-  min-width: 0;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
-.admin-field > span,
-.admin-field legend {
-  padding: 0;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--ink-700);
-}
-
-.admin-field em {
-  font-style: normal;
-  font-weight: 500;
-  color: var(--ink-500);
-}
-
-.admin-field input {
-  width: 100%;
-  padding: 12px 14px;
-  border: 1.5px solid var(--line);
-  border-radius: 12px;
-  background: var(--purple-50);
-  color: var(--ink-900);
-  transition:
-    border-color 0.2s,
-    box-shadow 0.2s,
-    background-color 0.2s;
-}
-
-.admin-field input:focus {
-  outline: none;
-  border-color: var(--purple-600);
-  background: var(--surface);
-  box-shadow: 0 0 0 4px rgb(113 44 131 / 0.12);
-}
-
-.admin-field input[aria-invalid='true'] {
-  border-color: #d64545;
-}
-
-.admin-field__error {
-  font-size: 0.82rem;
-  color: #b42318;
-}
-
-.admin-field__hint {
-  font-size: 0.82rem;
-  color: var(--ink-500);
-}
-
-.admin-field:disabled .role-options {
-  opacity: 0.6;
-}
-
 .role-options {
   display: grid;
   gap: 10px;
 }
 
 .role-option {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -361,8 +135,12 @@
   box-shadow: 0 0 0 3px rgb(113 44 131 / 0.1);
 }
 
+/* Visually hidden radio. Overrides `.admin-field input { width: 100% }`, which
+   otherwise stretched it past the modal's edge and caused a horizontal scrollbar. */
 .role-option input {
   position: absolute;
+  width: 1px;
+  height: 1px;
   opacity: 0;
   pointer-events: none;
 }
@@ -398,78 +176,9 @@
   color: var(--ink-500);
 }
 
-.admin-alert {
-  padding: 12px 14px;
-  border-radius: 12px;
-  background: #fdecec;
-  font-size: 0.9rem;
-  color: #a12626;
-}
-
-.confirm-text {
-  color: var(--ink-700);
-}
-
-.btn--danger {
-  background: #c62828;
-  color: #fff;
-}
-
-.btn--danger:hover {
-  background: #a51f1f;
-}
-
-/* ---------- Mobile: rows become cards ---------- */
 @media (max-width: 760px) {
-  .users-panel__tools,
-  .search-input {
-    width: 100%;
-  }
-
-  .search-input {
-    min-width: 0;
-  }
-
-  .users-table thead {
-    display: none;
-  }
-
-  .users-table,
-  .users-table tbody,
-  .users-table tr,
-  .users-table td {
-    display: block;
-  }
-
-  .users-table tr {
-    position: relative;
-    padding: 16px 20px;
-    border-top: 1px solid var(--line);
-  }
-
-  .users-table td {
-    padding: 4px 0;
-    border: 0;
-  }
-
-  .users-table td[data-label='Role'],
-  .users-table td[data-label='Status'],
-  .users-table td[data-label='Last sign-in'] {
-    display: flex;
-    justify-content: space-between;
+  /* Line the user's details up with the name, past the avatar. */
+  .data-table td[data-label]:not(:first-child) {
     padding-left: 50px;
-    font-size: 0.85rem;
-  }
-
-  .users-table td[data-label='Role']::before,
-  .users-table td[data-label='Status']::before,
-  .users-table td[data-label='Last sign-in']::before {
-    content: attr(data-label);
-    color: var(--ink-500);
-  }
-
-  .users-table__actions {
-    padding-top: 10px !important;
-    text-align: left;
   }
 }

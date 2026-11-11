@@ -36,7 +36,16 @@ export default function AuthProvider({ children }) {
     setStatus('anonymous')
   }, [])
 
-  const value = useMemo(() => ({ user, status, signIn, signOut }), [user, status, signIn, signOut])
+  // Re-reads the signed-in user from the server (e.g. after changing your own role).
+  const reloadUser = useCallback(async () => {
+    const data = await refreshSession()
+    setUser(data.user)
+  }, [])
+
+  const value = useMemo(
+    () => ({ user, status, signIn, signOut, reloadUser }),
+    [user, status, signIn, signOut, reloadUser],
+  )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

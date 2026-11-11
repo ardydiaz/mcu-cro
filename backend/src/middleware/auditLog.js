@@ -25,7 +25,7 @@ export async function audit(req, action, { entityType, entityId, details, actor 
 export function diff(before, after) {
   return Object.fromEntries(
     Object.keys(after)
-      .filter((key) => String(before[key]) !== String(after[key]) && !['updatedAt'].includes(key))
+      .filter((key) => JSON.stringify(before[key]) !== JSON.stringify(after[key]) && !['updatedAt'].includes(key))
       .map((key) => [key, { from: before[key], to: after[key] }]),
   )
 }

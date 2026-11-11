@@ -1,11 +1,13 @@
 import { useEffect, useRef } from 'react'
 
 // Fades in every `.reveal` element inside the returned ref as it scrolls into view.
-export default function useReveal() {
+// Pass `deps` that change when more content renders (e.g. after loading data)
+// so the new elements are picked up too.
+export default function useReveal(deps = []) {
   const ref = useRef(null)
 
   useEffect(() => {
-    const items = ref.current?.querySelectorAll('.reveal') ?? []
+    const items = ref.current?.querySelectorAll('.reveal:not(.is-visible)') ?? []
     if (!('IntersectionObserver' in window)) {
       items.forEach((el) => el.classList.add('is-visible'))
       return
@@ -24,7 +26,7 @@ export default function useReveal() {
     )
     items.forEach((el) => observer.observe(el))
     return () => observer.disconnect()
-  }, [])
+  }, deps) // eslint-disable-line react-hooks/exhaustive-deps
 
   return ref
 }

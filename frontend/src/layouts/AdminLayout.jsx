@@ -44,7 +44,7 @@ export default function AdminLayout() {
   }, [menuOpen])
 
   const current = ADMIN_PAGES.find((page) => pathname.startsWith(`/admin/${page.path}`))
-  const roleLabel = user.roles.map((role) => ROLE_LABELS[role] ?? role).join(', ')
+  const roleLabel = [...user.roles.map((role) => ROLE_LABELS[role] ?? role), user.college?.code].filter(Boolean).join(' · ')
 
   return (
     <div className={`admin${sidebarOpen ? ' is-sidebar-open' : ''}`}>

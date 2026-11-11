@@ -1,6 +1,6 @@
 import { HttpError } from '../utils/httpError.js'
 
-// Usage: router.delete('/x', requireRole(ROLES.ADMIN), handler)
+// Usage: router.delete('/x', requireRole(ROLES.CRO_ADMIN), handler)
 // Passes if the user has at least one of the given roles.
 export default function requireRole(...allowed) {
   return (req, res, next) => {

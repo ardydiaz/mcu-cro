@@ -10,7 +10,8 @@
     "token": "node --env-file-if-exists=.env scripts/dev-token.js",
     "secret": "node -p crypto.randomBytes(64).toString('hex')",
     "user:create": "node --env-file-if-exists=.env scripts/create-user.js",
-    "db:migrate": "node --env-file-if-exists=.env scripts/migrate.js"
+    "db:migrate": "node --env-file-if-exists=.env scripts/migrate.js",
+    "db:seed": "node --env-file-if-exists=.env scripts/seed.js"
   },
   "keywords": [],
   "author": "",
@@ -23,6 +24,7 @@
     "express-rate-limit": "^8.7.1",
     "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
+    "multer": "^2.5.0",
     "mysql2": "^3.24.6",
     "zod": "^4.6.7"
   },

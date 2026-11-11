@@ -935,9 +935,17 @@
   color: var(--ink-700);
 }
 
+.field em {
+  font-style: normal;
+  font-weight: 500;
+  color: var(--ink-500);
+}
+
 .field input,
+.field select,
 .field textarea {
   width: 100%;
+  font: inherit;
   padding: 14px 16px;
   border: 1.5px solid var(--line);
   border-radius: 14px;
@@ -955,11 +963,166 @@
 }
 
 .field input:focus,
+.field select:focus,
 .field textarea:focus {
   outline: none;
   border-color: var(--purple-600);
   background: var(--surface);
   box-shadow: 0 0 0 4px rgb(113 44 131 / 0.15);
+}
+
+.field [aria-invalid='true'] {
+  border-color: #d64545;
+}
+
+.field__error {
+  font-size: 0.82rem;
+  color: #b42318;
+}
+
+/* ---------- Announcements bar ---------- */
+.announcements {
+  border-bottom: 1px solid var(--line);
+  background: var(--gold-100);
+}
+
+.announcements__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 28px;
+  padding-block: 18px;
+}
+
+.announcements h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8a5300;
+}
+
+.announcements ul {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.announcements li a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  color: var(--purple-900);
+}
+
+.announcements li a:hover span {
+  text-decoration: underline;
+}
+
+.announcements time {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--surface);
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #8a5300;
+}
+
+.announcements__all {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--purple-700);
+}
+
+/* ---------- Impact numbers ---------- */
+.impact {
+  background: var(--purple-50);
+}
+
+.impact__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin: 0;
+  padding-block: 44px;
+  text-align: center;
+}
+
+.impact dd {
+  margin: 0;
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--purple-700);
+}
+
+.impact dt {
+  margin-top: 6px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--ink-500);
+}
+
+/* ---------- Featured programs and learning materials ---------- */
+.featured-programs__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.featured-programs__grid li {
+  padding: 26px;
+  border: 1px solid var(--line);
+  border-top: 4px solid var(--gold-500);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.featured-programs__grid svg {
+  font-size: 1.6rem;
+  color: var(--gold-600);
+}
+
+.featured-programs__grid h3 {
+  margin: 8px 0 6px;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--purple-900);
+}
+
+.featured-programs__grid p {
+  color: var(--ink-700);
+}
+
+.featured-materials {
+  background: var(--cream);
+}
+
+.featured-materials__soon {
+  padding: 32px;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  text-align: center;
+  color: var(--ink-500);
+}
+
+@media (max-width: 760px) {
+  .impact__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .contact__form .btn {

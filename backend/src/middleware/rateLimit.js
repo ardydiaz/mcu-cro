@@ -19,6 +19,18 @@ export const signInLimiter = limiter(100, 'Too many sign-in attempts. Please wai
 // Token refresh: runs on page load and roughly every 15 minutes per open tab.
 export const refreshLimiter = limiter(300, 'Too many requests. Please wait a few minutes and try again.')
 
+// Public website API (no sign-in), per visitor IP.
+export const publicLimiter = limiter(900, 'Too many requests. Please wait a few minutes and try again.')
+
+// Contact form: a handful of messages per IP per hour stops floods and spam.
+export const inquiryLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 5,
+  standardHeaders: 'draft-8',
+  legacyHeaders: false,
+  message: { error: 'You have sent several messages already. Please try again in an hour, or email us directly.' },
+})
+
 // Everything else under /api, after requireAuth: counted per signed-in user.
 export const apiLimiter = limiter(1500, 'Too many requests. Please slow down and try again shortly.', {
   keyGenerator: (req) => (req.user ? `user:${req.user.id}` : ipKeyGenerator(req.ip)),

@@ -7,7 +7,7 @@ import publicRoutes from './routes/public.routes.js'
 import adminRoutes from './routes/admin.routes.js'
 import requireAuth from './middleware/requireAuth.js'
 import checkOrigin from './middleware/checkOrigin.js'
-import { apiLimiter } from './middleware/rateLimit.js'
+import { apiLimiter, publicLimiter } from './middleware/rateLimit.js'
 import errorHandler from './middleware/errorHandler.js'
 
 const app = express()
@@ -15,10 +15,12 @@ const app = express()
 app.set('trust proxy', env.trustProxy)
 
 // Security headers (strict CSP, no framing, no MIME sniffing, HSTS, no X-Powered-By…).
-// The API only returns JSON and redirects, so the CSP can block everything.
+// The API only returns JSON, files and redirects, so the CSP can block everything.
 app.use(
   helmet({
     contentSecurityPolicy: { directives: { defaultSrc: ["'none'"], frameAncestors: ["'none'"] } },
+    // Uploaded images are shown on the website (same site, through the /api proxy).
+    crossOriginResourcePolicy: { policy: 'same-site' },
   }),
 )
 
@@ -30,9 +32,12 @@ app.use('/api', checkOrigin)
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }))
 app.use('/api/auth', authRoutes)
 
+// Unauthenticated: the public Community Website. Read-only and published content
+// only (plus the rate-limited contact form); never beneficiary records.
+app.use('/api/public', publicLimiter, publicRoutes)
+
 // Everything below requires a valid, unrevoked access token for an active user.
 app.use('/api', requireAuth, apiLimiter)
-app.use('/api/public', publicRoutes)
 app.use('/api/admin', adminRoutes)
 
 app.use((req, res) => res.status(404).json({ error: 'Not Found' }))

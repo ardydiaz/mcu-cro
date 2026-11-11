@@ -84,6 +84,7 @@
   border-radius: 999px;
   font-size: 0.88rem;
   font-weight: 600;
+  white-space: nowrap;
   color: rgb(255 255 255 / 0.82);
   transition:
     color 0.2s,
@@ -124,6 +125,18 @@
 
 .site-nav__actions .btn {
   padding: 0.8em 1.5em;
+  white-space: nowrap;
+}
+
+/* Seven links plus the button: tighten a little before switching to the mobile menu. */
+@media (max-width: 1400px) {
+  .site-nav {
+    gap: 14px;
+  }
+
+  .site-nav__link {
+    padding-inline: 11px;
+  }
 }
 
 .site-header__toggle {
@@ -139,7 +152,7 @@
   cursor: pointer;
 }
 
-@media (max-width: 1140px) {
+@media (max-width: 1260px) {
   .site-header__toggle {
     display: grid;
   }

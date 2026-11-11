@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   HiOutlineUserPlus,
   HiOutlineMagnifyingGlass,
@@ -28,7 +29,8 @@ const initials = (user) =>
     .join('')
 
 export default function SettingsPage() {
-  const { user: me } = useCurrentUser()
+  const { user: me, reloadUser } = useCurrentUser()
+  const navigate = useNavigate()
   const [users, setUsers] = useState([])
   const [status, setStatus] = useState('loading') // loading | ready | error
   const [search, setSearch] = useState('')
@@ -75,7 +77,13 @@ export default function SettingsPage() {
     setConfirm(null)
   }
 
-  function onSaved(saved) {
+  async function onSaved(saved) {
+    // Changed your own role: load the new permissions; Settings may no longer be yours.
+    if (saved.id === me.id && saved.role !== me.roles[0]) {
+      await reloadUser()
+      navigate('/admin/dashboard', { replace: true })
+      return
+    }
     const isNew = editing === 'new'
     setUsers((list) => (isNew ? [saved, ...list] : list.map((u) => (u.id === saved.id ? saved : u))))
     flash('success', isNew ? `${saved.email} can now sign in.` : 'Changes saved.')
@@ -93,15 +101,15 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <section className="admin-panel users-panel" aria-labelledby="users-title">
-        <div className="users-panel__top">
+      <section className="admin-panel data-panel" aria-labelledby="users-title">
+        <div className="data-panel__top">
           <div>
             <h2 id="users-title">Users</h2>
-            <p className="users-panel__meta">
+            <p className="data-panel__meta">
               {status === 'ready' && `${users.length} ${users.length === 1 ? 'user' : 'users'} · ${activeCount} active`}
             </p>
           </div>
-          <div className="users-panel__tools">
+          <div className="data-panel__tools">
             <label className="search-input">
               <HiOutlineMagnifyingGlass aria-hidden="true" />
               <span className="visually-hidden">Search users</span>
@@ -122,14 +130,14 @@ export default function SettingsPage() {
           </div>
         )}
 
-        {status === 'loading' && <p className="users-empty">Loading users…</p>}
-        {status === 'error' && <p className="users-empty">Couldn't load users. Please refresh the page.</p>}
+        {status === 'loading' && <p className="data-empty">Loading users…</p>}
+        {status === 'error' && <p className="data-empty">Couldn't load users. Please refresh the page.</p>}
         {status === 'ready' && users.length === 0 && (
-          <p className="users-empty">{search ? 'No users match your search.' : 'No users yet.'}</p>
+          <p className="data-empty">{search ? 'No users match your search.' : 'No users yet.'}</p>
         )}
 
         {status === 'ready' && users.length > 0 && (
-          <table className="users-table">
+          <table className="data-table">
             <thead>
               <tr>
                 <th scope="col">User</th>
@@ -162,16 +170,21 @@ export default function SettingsPage() {
                     </td>
                     <td data-label="Role">
                       <span className={`role-pill role-pill--${user.role}`}>{ROLE_LABELS[user.role] ?? user.role}</span>
+                      {user.college && (
+                        <span className="role-college" title={user.college.name}>
+                          {user.college.name}
+                        </span>
+                      )}
                     </td>
                     <td data-label="Status">
                       <span className={`status-dot${user.isActive ? ' is-active' : ''}`}>
                         {user.isActive ? 'Active' : 'Deactivated'}
                       </span>
                     </td>
-                    <td data-label="Last sign-in" className="users-table__muted">
+                    <td data-label="Last sign-in" className="data-table__muted">
                       {formatDateTime(user.lastLoginAt)}
                     </td>
-                    <td className="users-table__actions">
+                    <td className="data-table__actions">
                       <button type="button" className="icon-btn" title="Edit" aria-label={`Edit ${user.email}`} onClick={() => setEditing(user)}>
                         <HiOutlinePencilSquare />
                       </button>

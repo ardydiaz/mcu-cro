@@ -13,6 +13,8 @@ try {
     `CREATE DATABASE IF NOT EXISTS \`${database}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`,
   )
   await conn.changeUser({ database })
+  // Same as the app (src/config/db.js): timestamps are UTC.
+  await conn.query("SET time_zone = '+00:00'")
   await conn.query(`CREATE TABLE IF NOT EXISTS schema_migrations (
     name       VARCHAR(255) NOT NULL PRIMARY KEY,
     applied_at DATETIME(3)  NOT NULL DEFAULT CURRENT_TIMESTAMP(3)
