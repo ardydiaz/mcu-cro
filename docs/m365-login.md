@@ -91,7 +91,7 @@ On first sign-in the account is linked to the person's Microsoft 365 identity (`
 |---|---|
 | `/api/public/*` (the Community Website) needs no sign-in, but is read-only and returns only published content and totals, never beneficiary records. Its contact form is protected without outside services: 5 messages per IP per hour, a hidden trap field, a signed "form shown at" time (messages sent within 3 seconds are dropped), at most 2 links per message, repeated messages ignored for 24 hours, a block list fed by **Mark as spam** in the admin inbox, and the origin check. Spam is answered as if it was sent, so bots learn nothing. Uploaded files are public only while attached to published content, and each upload's actual content is checked against its file type. | `routes/public.routes.js`, `modules/files` |
 | Every other `/api` route except `/api/health` and `/api/auth/*` requires a JWT. Each request re-checks in MySQL that the user is active and the token isn't revoked; roles are read fresh from the database. | `middleware/requireAuth.js` |
-| Instant revocation: deactivating a user, or **Sign out of all devices**, increments `users.token_version`, which invalidates every token issued before | `users.service.js`, `/api/auth/logout-all` |
+| Instant revocation: deactivating a user increments `users.token_version`, which invalidates every token issued before | `users.service.js` |
 | Rate limits: sign-in 100 / 15 min per IP, refresh 300 / 15 min per IP, API 1,500 / 15 min per user | `middleware/rateLimit.js` |
 | Cross-site request blocking on every non-GET request (`Origin` must be `FRONTEND_URL`) | `middleware/checkOrigin.js` |
 | Security headers (CSP, HSTS, no framing, nosniff, no `X-Powered-By`) on API responses | `helmet` in `app.js` |

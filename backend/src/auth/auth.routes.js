@@ -113,7 +113,7 @@ router.get('/m365/callback', async (req, res) => {
 })
 
 // The user behind the refresh cookie, or null if it's missing, invalid, expired
-// or revoked (account deactivated or "sign out everywhere").
+// or revoked (account deactivated).
 async function refreshCookieUser(req) {
   const token = req.cookies[REFRESH_COOKIE]
   if (!token) return null
@@ -140,17 +140,6 @@ router.post('/refresh', refreshLimiter, async (req, res) => {
 router.post('/logout', refreshLimiter, async (req, res) => {
   const user = await refreshCookieUser(req)
   if (user) await audit(req, 'auth.sign_out', { actor: user })
-  res.clearCookie(REFRESH_COOKIE, cookieBase)
-  res.status(204).end()
-})
-
-// Signs out every browser and device: all existing tokens for this user stop working.
-router.post('/logout-all', refreshLimiter, async (req, res) => {
-  const user = await refreshCookieUser(req)
-  if (user) {
-    await usersService.revokeSessions(user.id)
-    await audit(req, 'auth.sign_out_everywhere', { actor: user })
-  }
   res.clearCookie(REFRESH_COOKIE, cookieBase)
   res.status(204).end()
 })

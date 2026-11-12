@@ -28,9 +28,8 @@ export default function AuthProvider({ children }) {
     window.location.assign(`${API_URL}/auth/m365/login?returnTo=${encodeURIComponent(returnTo)}`)
   }, [])
 
-  // everywhere = true also signs out every other browser and device.
-  const signOut = useCallback(async ({ everywhere = false } = {}) => {
-    await request(everywhere ? '/auth/logout-all' : '/auth/logout', { method: 'POST' }).catch(() => {})
+  const signOut = useCallback(async () => {
+    await request('/auth/logout', { method: 'POST' }).catch(() => {})
     setAccessToken(null)
     setUser(null)
     setStatus('anonymous')

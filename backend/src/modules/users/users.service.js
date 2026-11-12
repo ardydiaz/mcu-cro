@@ -45,9 +45,6 @@ export async function getSessionUser(id, tokenVersion) {
   return toSessionUser(user)
 }
 
-// "Sign out everywhere": every existing access and refresh token stops working.
-export const revokeSessions = (id) => repo.bumpTokenVersion(id)
-
 export const list = (filters) => repo.list(filters)
 
 const fieldError = (field, message) => new HttpError(400, 'Please check the highlighted fields.', [{ field, message }])

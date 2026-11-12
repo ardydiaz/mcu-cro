@@ -537,11 +537,3 @@
   }
 }
 
-.admin-user__menu .admin-user__secondary {
-  font-weight: 500;
-  color: var(--ink-700);
-}
-
-.admin-user__menu .admin-user__secondary:hover {
-  background: var(--purple-50);
-}
