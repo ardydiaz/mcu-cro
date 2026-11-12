@@ -101,6 +101,8 @@ On first sign-in the account is linked to the person's Microsoft 365 identity (`
 
 ## Production checklist
 
+Full step-by-step instructions are in [deployment.md](deployment.md).
+
 - Serve the site and API from the same HTTPS domain (for example `https://cro.mcu.edu.ph`, with `/api` going to the backend).
 - Set `NODE_ENV=production` so cookies are marked `Secure`.
 - Set `TRUST_PROXY` to the number of proxies in front of the API, so rate limits and the audit log see real client IPs.

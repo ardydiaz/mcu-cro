@@ -1295,7 +1295,7 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 20px;
-  margin: 0;
+  margin-block: 0; /* keep .container's margin-inline: auto, so the grid stays centered */
   padding-block: 44px;
   text-align: center;
 }
