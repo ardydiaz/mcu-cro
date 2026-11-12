@@ -106,37 +106,166 @@
   box-shadow: 0 0 0 3px rgb(47 179 106 / 0.18);
 }
 
+/* ---------- Add / edit user form ---------- */
+.user-form {
+  display: grid;
+  gap: 26px;
+}
+
+.user-form__section {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.user-form__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--purple-900);
+}
+
+/* Step number */
+.user-form__title > span:first-child {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--purple-100);
+  font-size: 0.72rem;
+  letter-spacing: 0;
+  color: var(--purple-700);
+}
+
+.user-form__count {
+  margin-left: auto;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--purple-50);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--purple-700);
+}
+
+/* fieldset legends don't take part in grid gaps */
+fieldset.user-form__section > .user-form__title {
+  margin-bottom: 12px;
+}
+
+.user-form__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.user-form__grid--single {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* The role-specific part (college or barangays) */
+.user-form__scope {
+  padding: 18px;
+  border-radius: 16px;
+  background: var(--purple-50);
+  animation: user-form-in 0.25s var(--ease);
+}
+
+.user-form__scope.user-form__section {
+  border: 1px solid var(--line);
+}
+
+/* A floated legend becomes a normal grid item, so it sits inside the padded box. */
+fieldset.user-form__scope > .user-form__title {
+  float: left;
+  margin-bottom: 0;
+}
+
+.user-form__scope .admin-field select,
+.user-form__scope .admin-field input {
+  background: var(--surface);
+}
+
+@keyframes user-form-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+/* Input with a leading icon */
+.input-icon {
+  position: relative;
+  display: block;
+}
+
+.input-icon > svg {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  font-size: 1.1rem;
+  color: var(--ink-500);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.admin-field .input-icon input,
+.input-icon input {
+  padding-left: 42px;
+}
+
+.user-form input::placeholder {
+  font-weight: 500;
+  color: #a59cb0;
+}
+
+/* ---------- Role cards ---------- */
 .role-options {
   display: grid;
-  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .role-option {
   position: relative;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px;
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  padding: 16px;
   border: 1.5px solid var(--line);
-  border-radius: 14px;
+  border-radius: 16px;
+  background: var(--surface);
   cursor: pointer;
   transition:
     border-color 0.2s,
-    background-color 0.2s;
+    background-color 0.2s,
+    box-shadow 0.2s,
+    transform 0.2s;
 }
 
 .role-option:hover {
   border-color: var(--purple-600);
+  transform: translateY(-1px);
 }
 
 .role-option.is-selected {
   border-color: var(--purple-700);
   background: var(--purple-50);
-  box-shadow: 0 0 0 3px rgb(113 44 131 / 0.1);
+  box-shadow: 0 0 0 3px rgb(113 44 131 / 0.12);
 }
 
-/* Visually hidden radio. Overrides `.admin-field input { width: 100% }`, which
-   otherwise stretched it past the modal's edge and caused a horizontal scrollbar. */
+/* Visually hidden radio. Overrides `.admin-field input { width: 100% }`. */
 .role-option input {
   position: absolute;
   width: 1px;
@@ -150,16 +279,25 @@
   outline-offset: 2px;
 }
 
+.role-option__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
 .role-option__icon {
   display: grid;
-  flex-shrink: 0;
   place-items: center;
   width: 40px;
   height: 40px;
   border-radius: 12px;
   background: var(--purple-100);
-  color: var(--purple-700);
   font-size: 1.25rem;
+  color: var(--purple-700);
+  transition:
+    background-color 0.2s,
+    color 0.2s;
 }
 
 .role-option.is-selected .role-option__icon {
@@ -167,63 +305,197 @@
   color: var(--gold-500);
 }
 
-.role-option span:last-child {
+.role-option__check {
   display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--line);
+  border-radius: 50%;
+  font-size: 0.8rem;
+  color: transparent;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    color 0.2s;
+}
+
+.role-option.is-selected .role-option__check {
+  border-color: var(--purple-700);
+  background: var(--purple-700);
+  color: #fff;
+}
+
+.role-option strong {
+  font-size: 0.95rem;
+  color: var(--purple-900);
 }
 
 .role-option small {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
+  line-height: 1.45;
   color: var(--ink-500);
 }
 
-/* A coordinator's assigned barangays */
-.field-hint {
+/* ---------- A coordinator's barangays ---------- */
+.barangay-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 14px;
+  margin: 4px 0 2px;
+}
+
+.barangay-tools__search {
+  flex: 1 1 220px;
+}
+
+.barangay-tools__search input {
+  width: 100%;
+  padding: 10px 14px 10px 42px;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.barangay-tools__search input:focus {
+  outline: none;
+  border-color: var(--purple-600);
+  box-shadow: 0 0 0 4px rgb(113 44 131 / 0.12);
+}
+
+.barangay-tools .link-button {
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  font: inherit;
   font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--purple-700);
+  cursor: pointer;
+}
+
+.barangay-tools .link-button:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.barangay-tools .link-button:disabled {
   color: var(--ink-500);
+  opacity: 0.6;
+  cursor: default;
 }
 
 .barangay-checks {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
   gap: 8px;
-  max-height: 240px;
-  margin-top: 8px;
-  overflow-y: auto;
 }
 
 .barangay-check {
+  position: relative;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
   padding: 10px 12px;
   border: 1.5px solid var(--line);
   border-radius: 12px;
+  background: var(--surface);
   font-size: 0.86rem;
   font-weight: 600;
   cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background-color 0.2s;
+}
+
+.barangay-check:hover {
+  border-color: var(--purple-600);
 }
 
 .barangay-check.is-selected {
   border-color: var(--purple-700);
-  background: var(--purple-50);
+  background: var(--purple-100);
 }
 
-/* Overrides `.admin-field input { width: 100% }`. */
-.admin-field .barangay-check input {
-  flex-shrink: 0;
-  width: 17px;
-  height: 17px;
-  margin: 1px 0 0;
-  accent-color: var(--purple-700);
+/* Visually hidden checkbox; the styled box shows its state. */
+.barangay-check input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
 }
 
-.barangay-check span {
+.barangay-check:has(input:focus-visible) {
+  outline: 3px solid var(--gold-500);
+  outline-offset: 2px;
+}
+
+.barangay-check__box {
   display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 1.5px solid #c9c1d1;
+  border-radius: 6px;
+  background: var(--surface);
+  font-size: 0.75rem;
+  color: transparent;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    color 0.2s;
+}
+
+.barangay-check.is-selected .barangay-check__box {
+  border-color: var(--purple-700);
+  background: var(--purple-700);
+  color: #fff;
+}
+
+.barangay-check__text {
+  display: grid;
+  min-width: 0;
+  line-height: 1.3;
 }
 
 .barangay-check small {
-  font-weight: 400;
+  font-size: 0.76rem;
+  font-weight: 500;
   color: var(--ink-500);
+}
+
+@media (max-width: 640px) {
+  .user-form__grid,
+  .role-options {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .role-option {
+    grid-template-columns: auto 1fr;
+    column-gap: 12px;
+  }
+
+  .role-option__head {
+    grid-row: span 2;
+    margin: 0;
+  }
+
+  .role-option__check {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .user-form__scope {
+    animation: none;
+  }
+
+  .role-option:hover {
+    transform: none;
+  }
 }
 
 @media (max-width: 760px) {

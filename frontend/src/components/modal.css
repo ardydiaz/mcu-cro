@@ -7,11 +7,15 @@
   background: var(--surface);
   color: var(--ink-900);
   box-shadow: var(--shadow-lg);
-  overflow: auto;
+  overflow: hidden;
 }
 
 .modal--sm {
   width: min(100% - 32px, 420px);
+}
+
+.modal--lg {
+  width: min(100% - 32px, 760px);
 }
 
 .modal[open] {
@@ -30,13 +34,16 @@
   }
 }
 
+/* Header and footer stay in place; only the body scrolls, so the buttons are always visible. */
 .modal__panel {
   display: flex;
   flex-direction: column;
+  max-height: calc(100dvh - 32px);
 }
 
 .modal__header {
   display: flex;
+  flex-shrink: 0;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
@@ -74,12 +81,18 @@
 }
 
 .modal__body {
+  flex: 1 1 auto;
+  min-height: 0;
   padding: 20px 24px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .modal__footer {
   display: flex;
+  flex-shrink: 0;
   justify-content: flex-end;
   gap: 10px;
-  padding: 16px 24px 24px;
+  padding: 16px 24px 20px;
+  border-top: 1px solid var(--line);
 }

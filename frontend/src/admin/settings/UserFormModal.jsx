@@ -1,5 +1,14 @@
 import { useEffect, useState } from 'react'
-import { HiOutlineBuildingLibrary, HiOutlineCpuChip, HiOutlineShieldCheck, HiOutlineUserGroup } from 'react-icons/hi2'
+import {
+  HiCheck,
+  HiOutlineBuildingLibrary,
+  HiOutlineCpuChip,
+  HiOutlineEnvelope,
+  HiOutlineMagnifyingGlass,
+  HiOutlineShieldCheck,
+  HiOutlineUser,
+  HiOutlineUserGroup,
+} from 'react-icons/hi2'
 import Modal from '../../components/Modal.jsx'
 import { createUser, listBarangays, listColleges, updateUser } from '../../api/admin.api.js'
 import { ROLE_LABELS, ROLES } from '../../constants/roles.js'
@@ -56,6 +65,14 @@ export default function UserFormModal({ open, user, isSelf, onClose, onSaved }) 
   const set = (field) => (e) => setValues((v) => ({ ...v, [field]: e.target.value }))
   const toggleBarangay = (id) =>
     setValues((v) => ({ ...v, barangayIds: v.barangayIds.includes(id) ? v.barangayIds.filter((b) => b !== id) : [...v.barangayIds, id] }))
+  const [barangayQuery, setBarangayQuery] = useState('')
+  const query = barangayQuery.trim().toLowerCase()
+  const shownBarangays = query
+    ? barangays.filter((b) => `${b.name} ${b.city ?? ''}`.toLowerCase().includes(query))
+    : barangays
+  const selectAllShown = () =>
+    setValues((v) => ({ ...v, barangayIds: [...new Set([...v.barangayIds, ...shownBarangays.map((b) => b.id)])] }))
+  const clearBarangays = () => setValues((v) => ({ ...v, barangayIds: [] }))
   const isCollege = values.role === ROLES.COLLEGE
   const isCoordinator = values.role === ROLES.COORDINATOR
   // Giving up your own IT Administrator role also removes your access to this page.
@@ -87,6 +104,7 @@ export default function UserFormModal({ open, user, isSelf, onClose, onSaved }) 
   return (
     <Modal
       open={open}
+      size="lg"
       onClose={onClose}
       title={editing ? 'Edit user' : 'Add user'}
       description={
@@ -105,45 +123,71 @@ export default function UserFormModal({ open, user, isSelf, onClose, onSaved }) 
         </>
       }
     >
-      <form id="user-form" className="admin-form" onSubmit={onSubmit} noValidate>
-        {!editing && (
-          <label className="admin-field">
-            <span>MCU Microsoft 365 email</span>
-            <input
-              type="email"
-              value={values.email}
-              onChange={set('email')}
-              placeholder="name@mcu.edu.ph"
-              autoComplete="off"
-              required
-              autoFocus
-              aria-invalid={Boolean(errors.email)}
-            />
-            {errors.email && <small className="admin-field__error">{errors.email}</small>}
-          </label>
-        )}
+      <form id="user-form" className="user-form" onSubmit={onSubmit} noValidate>
+        <section className="user-form__section" aria-labelledby="user-form-account">
+          <h3 id="user-form-account" className="user-form__title">
+            <span>1</span> Account
+          </h3>
+          <div className={`user-form__grid${editing ? ' user-form__grid--single' : ''}`}>
+            {!editing && (
+              <label className="admin-field">
+                <span>MCU Microsoft 365 email</span>
+                <span className="input-icon">
+                  <HiOutlineEnvelope aria-hidden="true" />
+                  <input
+                    type="email"
+                    value={values.email}
+                    onChange={set('email')}
+                    placeholder="name@mcu.edu.ph"
+                    autoComplete="off"
+                    required
+                    autoFocus
+                    aria-invalid={Boolean(errors.email)}
+                  />
+                </span>
+                {errors.email ? (
+                  <small className="admin-field__error">{errors.email}</small>
+                ) : (
+                  <small className="admin-field__hint">They sign in with this account.</small>
+                )}
+              </label>
+            )}
 
-        <label className="admin-field">
-          <span>
-            Full name <em>(optional, filled in from Microsoft 365 at first sign-in)</em>
-          </span>
-          <input value={values.name} onChange={set('name')} maxLength={160} aria-invalid={Boolean(errors.name)} />
-          {errors.name && <small className="admin-field__error">{errors.name}</small>}
-        </label>
+            <label className="admin-field">
+              <span>
+                Full name <em>(optional)</em>
+              </span>
+              <span className="input-icon">
+                <HiOutlineUser aria-hidden="true" />
+                <input value={values.name} onChange={set('name')} maxLength={160} placeholder="Juan dela Cruz" aria-invalid={Boolean(errors.name)} />
+              </span>
+              {errors.name ? (
+                <small className="admin-field__error">{errors.name}</small>
+              ) : (
+                <small className="admin-field__hint">Filled in from Microsoft 365 at first sign-in.</small>
+              )}
+            </label>
+          </div>
+        </section>
 
-        <fieldset className="admin-field">
-          <legend>Role</legend>
+        <fieldset className="user-form__section">
+          <legend className="user-form__title">
+            <span>2</span> Role
+          </legend>
           <div className="role-options">
             {ROLE_OPTIONS.map(({ value, Icon, text }) => (
               <label key={value} className={`role-option${values.role === value ? ' is-selected' : ''}`}>
                 <input type="radio" name="role" value={value} checked={values.role === value} onChange={set('role')} />
-                <span className="role-option__icon">
-                  <Icon aria-hidden="true" />
+                <span className="role-option__head">
+                  <span className="role-option__icon">
+                    <Icon aria-hidden="true" />
+                  </span>
+                  <span className="role-option__check" aria-hidden="true">
+                    <HiCheck />
+                  </span>
                 </span>
-                <span>
-                  <strong>{ROLE_LABELS[value]}</strong>
-                  <small>{text}</small>
-                </span>
+                <strong>{ROLE_LABELS[value]}</strong>
+                <small>{text}</small>
               </label>
             ))}
           </div>
@@ -158,45 +202,87 @@ export default function UserFormModal({ open, user, isSelf, onClose, onSaved }) 
         </fieldset>
 
         {isCollege && (
-          <label className="admin-field">
-            <span>College or department</span>
-            <select
-              value={values.collegeId}
-              onChange={set('collegeId')}
-              required
-              aria-invalid={Boolean(errors.collegeId)}
-            >
-              <option value="" disabled>
-                Choose…
-              </option>
-              {colleges.map(({ id, code, name }) => (
-                <option key={id} value={id}>
-                  {name} ({code})
+          <section className="user-form__section user-form__scope" aria-labelledby="user-form-scope">
+            <h3 id="user-form-scope" className="user-form__title">
+              <span>3</span> College or department
+            </h3>
+            <label className="admin-field">
+              <span className="visually-hidden">College or department</span>
+              <select value={values.collegeId} onChange={set('collegeId')} required aria-invalid={Boolean(errors.collegeId)}>
+                <option value="" disabled>
+                  Choose a college or department…
                 </option>
-              ))}
-            </select>
-            {errors.collegeId && <small className="admin-field__error">{errors.collegeId}</small>}
-          </label>
+                {colleges.map(({ id, code, name }) => (
+                  <option key={id} value={id}>
+                    {name} ({code})
+                  </option>
+                ))}
+              </select>
+              {errors.collegeId ? (
+                <small className="admin-field__error">{errors.collegeId}</small>
+              ) : (
+                <small className="admin-field__hint">They see only beneficiaries assigned to, served by or referred to this college.</small>
+              )}
+            </label>
+          </section>
         )}
 
         {isCoordinator && (
-          <fieldset className="admin-field">
-            <legend>Assigned barangays</legend>
-            <p className="field-hint">They see, add and update only the beneficiaries of these barangays.</p>
+          <fieldset className="user-form__section user-form__scope">
+            <legend className="user-form__title">
+              <span>3</span> Assigned barangays
+              {barangays.length > 0 && (
+                <span className="user-form__count">
+                  {values.barangayIds.length} of {barangays.length} selected
+                </span>
+              )}
+            </legend>
+            <p className="admin-field__hint">They see, add and update only the beneficiaries of these barangays.</p>
+
             {barangays.length === 0 ? (
-              <p className="field-hint">No barangays yet. Add them from a beneficiary form first.</p>
+              <p className="admin-warning">No barangays yet. Add them from a beneficiary form first.</p>
             ) : (
-              <div className="barangay-checks">
-                {barangays.map((b) => (
-                  <label key={b.id} className={`barangay-check${values.barangayIds.includes(b.id) ? ' is-selected' : ''}`}>
-                    <input type="checkbox" checked={values.barangayIds.includes(b.id)} onChange={() => toggleBarangay(b.id)} />
-                    <span>
-                      {b.name}
-                      <small>{b.city}</small>
+              <>
+                <div className="barangay-tools">
+                  {barangays.length > 8 && (
+                    <span className="input-icon barangay-tools__search">
+                      <HiOutlineMagnifyingGlass aria-hidden="true" />
+                      <input
+                        type="search"
+                        value={barangayQuery}
+                        onChange={(e) => setBarangayQuery(e.target.value)}
+                        placeholder="Search barangays"
+                        aria-label="Search barangays"
+                      />
                     </span>
-                  </label>
-                ))}
-              </div>
+                  )}
+                  <button type="button" className="link-button" onClick={selectAllShown} disabled={shownBarangays.length === 0}>
+                    Select all{barangayQuery ? ' shown' : ''}
+                  </button>
+                  <button type="button" className="link-button" onClick={clearBarangays} disabled={values.barangayIds.length === 0}>
+                    Clear
+                  </button>
+                </div>
+
+                <div className="barangay-checks">
+                  {shownBarangays.map((b) => {
+                    const checked = values.barangayIds.includes(b.id)
+                    return (
+                      <label key={b.id} className={`barangay-check${checked ? ' is-selected' : ''}`}>
+                        <input type="checkbox" checked={checked} onChange={() => toggleBarangay(b.id)} />
+                        <span className="barangay-check__box" aria-hidden="true">
+                          <HiCheck />
+                        </span>
+                        <span className="barangay-check__text">
+                          {b.name}
+                          <small>{b.city}</small>
+                        </span>
+                      </label>
+                    )
+                  })}
+                  {shownBarangays.length === 0 && <p className="admin-field__hint">No barangay matches "{barangayQuery}".</p>}
+                </div>
+              </>
             )}
             {values.barangayIds.length === 0 && barangays.length > 0 && (
               <p className="admin-warning">Without barangays, this coordinator won't see any beneficiaries.</p>
