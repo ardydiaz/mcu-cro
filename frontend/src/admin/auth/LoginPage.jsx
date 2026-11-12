@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate, useSearchParams } from 'react-router-dom'
-import { HiArrowLeft, HiOutlineExclamationCircle } from 'react-icons/hi'
+import { HiArrowLeft, HiOutlineClock, HiOutlineExclamationCircle } from 'react-icons/hi'
 import {
   HiOutlineUserGroup,
   HiOutlineClipboardDocumentList,
   HiOutlineDocumentText,
   HiOutlineShieldCheck,
 } from 'react-icons/hi2'
+import { IDLE_MINUTES } from '../../auth/IdleTimeout.jsx'
 import useCurrentUser from '../../auth/useCurrentUser.js'
 import './login.css'
 
@@ -31,7 +32,7 @@ const YEAR = new Date().getFullYear()
 const safeReturnTo = (value) => (value?.startsWith('/admin') && !value.startsWith('//') ? value : '/admin')
 
 export default function LoginPage() {
-  const { status, signIn } = useCurrentUser()
+  const { status, signOutReason, signIn } = useCurrentUser()
   const [params] = useSearchParams()
   const [redirecting, setRedirecting] = useState(false)
   const returnTo = safeReturnTo(params.get('returnTo'))
@@ -97,6 +98,13 @@ export default function LoginPage() {
           <h2>Welcome back</h2>
           <p className="login-panel__lead">Sign in with your MCU Microsoft 365 account to continue.</p>
 
+          {!error && signOutReason === 'idle' && (
+            <div className="login-panel__error login-panel__error--info" role="status">
+              <HiOutlineClock aria-hidden="true" />
+              <span>You were signed out after {IDLE_MINUTES} minutes of inactivity. Sign in again to continue.</span>
+            </div>
+          )}
+
           {error && (
             <div className="login-panel__error" role="alert">
               <HiOutlineExclamationCircle aria-hidden="true" />
@@ -129,7 +137,7 @@ export default function LoginPage() {
           <ol className="login-steps">
             <li>You'll be taken to Microsoft to sign in securely.</li>
             <li>We check that your account is on the CRO staff list.</li>
-            <li>You'll return here, signed in, for up to 8 hours.</li>
+            <li>You'll return here, signed in, for up to 8 hours, or until {IDLE_MINUTES} minutes without activity.</li>
           </ol>
 
           <p className="login-panel__help">

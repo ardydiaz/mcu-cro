@@ -28,10 +28,14 @@ export default function AuthProvider({ children }) {
     window.location.assign(`${API_URL}/auth/m365/login?returnTo=${encodeURIComponent(returnTo)}`)
   }, [])
 
-  const signOut = useCallback(async () => {
+  // reason: 'idle' when signed out automatically for inactivity (shown on the login page).
+  const [signOutReason, setSignOutReason] = useState(null)
+
+  const signOut = useCallback(async ({ reason = null } = {}) => {
     await request('/auth/logout', { method: 'POST' }).catch(() => {})
     setAccessToken(null)
     setUser(null)
+    setSignOutReason(reason)
     setStatus('anonymous')
   }, [])
 
@@ -42,8 +46,8 @@ export default function AuthProvider({ children }) {
   }, [])
 
   const value = useMemo(
-    () => ({ user, status, signIn, signOut, reloadUser }),
-    [user, status, signIn, signOut, reloadUser],
+    () => ({ user, status, signOutReason, signIn, signOut, reloadUser }),
+    [user, status, signOutReason, signIn, signOut, reloadUser],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

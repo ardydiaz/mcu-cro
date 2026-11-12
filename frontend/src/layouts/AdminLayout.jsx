@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { HiOutlineMenuAlt2, HiX, HiOutlineExternalLink, HiOutlineLogout, HiChevronDown } from 'react-icons/hi'
+import IdleTimeout from '../auth/IdleTimeout.jsx'
 import useCurrentUser from '../auth/useCurrentUser.js'
 import { ADMIN_NAV, ADMIN_PAGES } from '../admin/adminNav.js'
 import { ROLE_LABELS } from '../constants/roles.js'
@@ -130,6 +131,7 @@ export default function AdminLayout() {
         <main className="admin-content" id="main">
           <Outlet />
         </main>
+        <IdleTimeout />
       </div>
     </div>
   )

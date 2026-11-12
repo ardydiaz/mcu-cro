@@ -242,6 +242,12 @@
   animation: login-rise 0.4s var(--ease) both;
 }
 
+.login-panel__error--info {
+  border-color: #ddd0f0;
+  background: var(--purple-50);
+  color: var(--purple-700);
+}
+
 .login-panel__error svg {
   flex-shrink: 0;
   margin-top: 2px;
