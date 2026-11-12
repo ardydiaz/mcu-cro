@@ -23,6 +23,8 @@ In the [Microsoft Entra admin center](https://entra.microsoft.com), go to **Iden
 
 On the app's **Overview** page, copy the **Directory (tenant) ID** and the **Application (client) ID**.
 
+Under **API permissions**, check that **Microsoft Graph → User.Read** (Delegated) is listed. New app registrations have it by default. The portal uses it to copy each person's Microsoft 365 profile photo at sign-in and show it as their avatar. If your tenant doesn't let users consent to apps themselves, click **Grant admin consent for MCU**.
+
 ## 2. Create a client secret
 
 Go to **Certificates & secrets → Client secrets → New client secret**. Copy the **Value** right away, because Entra shows it only once. Note the expiry date and renew the secret before it runs out.

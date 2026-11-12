@@ -3,7 +3,9 @@ import { env } from '../config/env.js'
 import { audit } from '../middleware/auditLog.js'
 import { refreshLimiter, signInLimiter } from '../middleware/rateLimit.js'
 import requireAuth from '../middleware/requireAuth.js'
+import * as usersRepo from '../modules/users/users.repository.js'
 import * as usersService from '../modules/users/users.service.js'
+import { syncProfilePhoto } from './graphPhoto.js'
 import { HttpError } from '../utils/httpError.js'
 import { crypto, getMsalClient, SCOPES } from './m365.js'
 import { issueTokens, signAccessToken, signLoginState, verifyLoginState, verifyRefreshToken } from './tokens.js'
@@ -81,7 +83,7 @@ router.get('/m365/callback', async (req, res) => {
     return res.redirect(toLoginPage('session_expired'))
   }
 
-  let claims
+  let claims, graphAccessToken
   try {
     const result = await msal.acquireTokenByCode({
       code: req.query.code,
@@ -90,6 +92,7 @@ router.get('/m365/callback', async (req, res) => {
       codeVerifier: login.verifier,
     })
     claims = result.idTokenClaims
+    graphAccessToken = result.accessToken
   } catch (err) {
     console.error('M365 token exchange failed:', err)
     return res.redirect(toLoginPage('m365_error', aadCode(err.errorMessage ?? err.message) ?? err.errorCode))
@@ -107,6 +110,7 @@ router.get('/m365/callback', async (req, res) => {
     return res.redirect(toLoginPage('no_access', email))
   }
   await audit(req, 'auth.sign_in', { actor: user })
+  await syncProfilePhoto(user.id, graphAccessToken)
 
   setRefreshCookie(res, issueTokens(user).refreshToken)
   res.redirect(`${env.frontendUrl}${login.returnTo}`)
@@ -142,6 +146,18 @@ router.post('/logout', refreshLimiter, async (req, res) => {
   if (user) await audit(req, 'auth.sign_out', { actor: user })
   res.clearCookie(REFRESH_COOKIE, cookieBase)
   res.status(204).end()
+})
+
+// A portal user's Microsoft 365 photo, for <img> tags. Images can't send the
+// access token, so this checks the refresh cookie instead (its path is /api/auth):
+// only signed-in portal users can see staff photos.
+router.get('/photo/:id', refreshLimiter, async (req, res) => {
+  if (!(await refreshCookieUser(req))) throw new HttpError(401, 'Not signed in')
+  const photo = await usersRepo.findPhoto(String(req.params.id))
+  if (!photo) throw new HttpError(404, 'No photo')
+  // The URL changes (?v=) whenever the photo does, so it can be cached.
+  res.set({ 'Content-Type': photo.type, 'Cache-Control': 'private, max-age=86400' })
+  res.send(photo.data)
 })
 
 router.get('/me', requireAuth, (req, res) => {

@@ -214,6 +214,21 @@
   color: #fff;
 }
 
+/* Microsoft 365 photo instead of initials (UserAvatar) */
+.admin-user__avatar.has-photo,
+.user-cell__avatar.has-photo {
+  overflow: hidden;
+  background: var(--purple-100);
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--line);
+}
+
+.admin-user__avatar img,
+.user-cell__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .admin-user__meta {
   display: grid;
   text-align: left;

@@ -13,6 +13,7 @@ export const toSessionUser = (user) => ({
   name: user.name,
   roles: [user.role],
   college: user.college,
+  photoUrl: user.photoUrl,
   tokenVersion: user.tokenVersion,
 })
 

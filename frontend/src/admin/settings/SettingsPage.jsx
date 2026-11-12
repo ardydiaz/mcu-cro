@@ -12,6 +12,7 @@ import Modal from '../../components/Modal.jsx'
 import useCurrentUser from '../../auth/useCurrentUser.js'
 import { deleteUser, listUsers, updateUser } from '../../api/admin.api.js'
 import { ROLE_LABELS, ROLES } from '../../constants/roles.js'
+import UserAvatar from '../shared/UserAvatar.jsx'
 import UserFormModal from './UserFormModal.jsx'
 import './settings.css'
 
@@ -19,14 +20,6 @@ const formatDateTime = (iso) =>
   iso
     ? new Date(iso).toLocaleString('en-PH', { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit' })
     : 'Never'
-
-const initials = (user) =>
-  (user.name || user.email)
-    .split(/[\s@.]+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0].toUpperCase())
-    .join('')
 
 export default function SettingsPage() {
   const { user: me, reloadUser } = useCurrentUser()
@@ -156,9 +149,7 @@ export default function SettingsPage() {
                   <tr key={user.id} className={user.isActive ? '' : 'is-inactive'}>
                     <td data-label="User">
                       <div className="user-cell">
-                        <span className="user-cell__avatar" aria-hidden="true">
-                          {initials(user)}
-                        </span>
+                        <UserAvatar user={user} className="user-cell__avatar" />
                         <div>
                           <strong>
                             {user.name || '—'}

@@ -1,7 +1,8 @@
 import { ConfidentialClientApplication, CryptoProvider } from '@azure/msal-node'
 import { env, m365Configured } from '../config/env.js'
 
-export const SCOPES = ['openid', 'profile', 'email']
+// User.Read: lets sign-in copy the person's Microsoft 365 profile photo (graphPhoto.js).
+export const SCOPES = ['openid', 'profile', 'email', 'User.Read']
 
 export const crypto = new CryptoProvider()
 

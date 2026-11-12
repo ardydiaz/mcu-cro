@@ -1,9 +1,15 @@
 import { randomUUID } from 'node:crypto'
 import { db } from '../../config/db.js'
 
+// The photo itself is only read by findPhoto; lists carry just its timestamp.
 const SELECT = `SELECT u.id, u.email, u.name, u.role, u.college_id, u.is_active, u.entra_oid, u.token_version,
-                       u.last_login_at, u.created_at, u.updated_at, c.code AS college_code, c.name AS college_name
+                       u.photo_updated_at, u.last_login_at, u.created_at, u.updated_at,
+                       c.code AS college_code, c.name AS college_name
                 FROM users u LEFT JOIN colleges c ON c.id = u.college_id`
+
+// Served by GET /api/auth/photo/:id; ?v= changes when the photo does, so browsers can cache it.
+const photoUrlOf = (row) =>
+  row.photo_updated_at ? `/api/auth/photo/${row.id}?v=${new Date(row.photo_updated_at).getTime()}` : null
 
 // Database row → object. entraOid and tokenVersion stay internal (sign-in and
 // session checks only) and are stripped by toPublic before reaching the API.
@@ -17,6 +23,7 @@ const toUser = (row) =>
     isActive: Boolean(row.is_active),
     entraOid: row.entra_oid,
     tokenVersion: row.token_version,
+    photoUrl: photoUrlOf(row),
     lastLoginAt: row.last_login_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -102,6 +109,23 @@ export { toPublic }
 // Invalidates every token issued to this user so far.
 export async function bumpTokenVersion(id) {
   await db.execute('UPDATE users SET token_version = token_version + 1 WHERE id = ?', [id])
+}
+
+// Saves the Microsoft 365 photo, or clears it (photo = null) when they have none.
+// The timestamp only changes when the photo does, so cached copies stay valid.
+export async function setPhoto(id, photo, type) {
+  await db.execute(
+    `UPDATE users
+     SET photo_updated_at = IF(photo <=> ?, photo_updated_at, IF(? IS NULL, NULL, CURRENT_TIMESTAMP(3))),
+         photo = ?, photo_type = ?
+     WHERE id = ?`,
+    [photo, photo, photo, type, id],
+  )
+}
+
+export async function findPhoto(id) {
+  const [rows] = await db.execute('SELECT photo, photo_type FROM users WHERE id = ? AND photo IS NOT NULL', [id])
+  return rows[0] ? { data: rows[0].photo, type: rows[0].photo_type } : null
 }
 
 export async function remove(id) {

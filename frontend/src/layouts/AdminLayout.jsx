@@ -4,15 +4,8 @@ import { HiOutlineMenuAlt2, HiX, HiOutlineExternalLink, HiOutlineLogout, HiChevr
 import IdleTimeout from '../auth/IdleTimeout.jsx'
 import useCurrentUser from '../auth/useCurrentUser.js'
 import { ADMIN_NAV, ADMIN_PAGES } from '../admin/adminNav.js'
+import UserAvatar from '../admin/shared/UserAvatar.jsx'
 import { ROLE_LABELS } from '../constants/roles.js'
-
-const initials = (name = '') =>
-  name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0].toUpperCase())
-    .join('')
 
 export default function AdminLayout() {
   const { user, hasRole, signOut } = useCurrentUser()
@@ -104,9 +97,7 @@ export default function AdminLayout() {
               aria-haspopup="menu"
               onClick={() => setMenuOn(menuOpen ? null : pathname)}
             >
-              <span className="admin-user__avatar" aria-hidden="true">
-                {initials(user.name || user.email)}
-              </span>
+              <UserAvatar user={user} className="admin-user__avatar" />
               <span className="admin-user__meta">
                 <strong>{user.name || user.email}</strong>
                 <small>{roleLabel}</small>
