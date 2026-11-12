@@ -138,25 +138,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Impact in numbers (totals only) */}
-      {data?.impact.services > 0 && (
-        <section className="impact" aria-label="Our reach">
-          <dl className="container impact__grid">
-            {[
-              ['Beneficiaries served', data.impact.beneficiaries],
-              ['Services rendered', data.impact.services],
-              ['Partner barangays', data.impact.barangays],
-              ['Colleges & departments involved', data.impact.colleges],
-            ].map(([label, value]) => (
-              <div key={label} className="reveal">
-                <dd>{value.toLocaleString()}</dd>
-                <dt>{label}</dt>
-              </div>
-            ))}
-          </dl>
-        </section>
-      )}
-
       {/* CRO Pillars (dark section) */}
       <section id="pillars" className="section pillars" aria-labelledby="pillars-title">
         <div className="container">
