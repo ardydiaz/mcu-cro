@@ -336,6 +336,19 @@ tar -xzf uploads-YYYY-MM-DD.tar.gz -C /var/www/mcu-cro/backend/storage
 
 ## 11. Updating to a new version
 
+Pull the code yourself, then run the deploy script from the project folder, as the app user (not root):
+
+```sh
+cd /var/www/mcu-cro
+/usr/local/bin/mcu-cro-backup.sh       # back up first
+git pull origin main
+./deploy.sh
+```
+
+The script does not pull. It applies the code that is already on the server: installs packages, applies new migrations, restarts the API, rebuilds the website and checks that the API answers. It stops at the first error.
+
+The same steps by hand:
+
 ```sh
 cd /var/www/mcu-cro
 /usr/local/bin/mcu-cro-backup.sh       # back up first
